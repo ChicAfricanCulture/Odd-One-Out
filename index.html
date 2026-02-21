@@ -1,101 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>African Foodways: Spot the Odd One Out</title>
-    <style>
-        body { background: linear-gradient(135deg, #1a2a3a, #0d1b2a); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { max-width: 800px; text-align: center; }
-        h1 { color: #f9a826; font-size: 2rem; margin-bottom: 10px; }
-        .subtitle { color: #b8c7d6; margin-bottom: 30px; }
-        .game-board { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 400px; margin: 0 auto 30px; }
-        .tile { width: 180px; height: 180px; background: linear-gradient(145deg, #e8d0b0, #b08968); border: 3px solid #c49a6c; border-radius: 12px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 4rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
-        .tile:hover { transform: scale(1.05); }
-        .tile.flipped { background: white; }
-        .tile img { width: 90%; height: 90%; object-fit: cover; border-radius: 8px; }
-        .tile.selected { border-color: #f9a826; box-shadow: 0 0 20px #f9a826; }
-        .tile.wrong { animation: shake 0.5s; border-color: #ff4444; }
-        @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
-        .feedback { min-height: 100px; padding: 20px; background: rgba(26,42,58,0.8); border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; }
-        button { background: linear-gradient(135deg, #f9a826, #e8951e); color: #1a2a3a; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 10px; transition: all 0.3s; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249,168,38,0.4); }
-        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .stat { font-size: 1.2rem; color: #f9a826; }
-        @media (max-width: 500px) { .tile { width: 140px; height: 140px; font-size: 3rem; } }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>African Foodways: Spot the Odd One Out</title>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container { max-width: 900px; width: 100%; text-align: center; }
+
+    h1 { color: #f9a826; font-size: 2rem; margin: 10px 0; }
+    .subtitle { color: #b8c7d6; margin-bottom: 18px; }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stat { font-size: 1.15rem; color: #f9a826; }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 15px;
+      max-width: 460px;
+      margin: 0 auto 18px;
+    }
+
+    .tile {
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(145deg, #e8d0b0, #b08968);
+      border: 3px solid #c49a6c;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+      outline: none;
+    }
+
+    .tile:hover { transform: scale(1.03); }
+
+    .tile:focus-visible{
+      border-color: #f9a826;
+      box-shadow: 0 0 0 3px rgba(249,168,38,0.35), 0 5px 15px rgba(0,0,0,0.4);
+    }
+
+    .tile.flipped { background: #ffffff; }
+
+    .tile img {
+      width: 92%;
+      height: 92%;
+      object-fit: cover;
+      border-radius: 8px;
+      pointer-events: none; /* important so clicks still go to the tile */
+      display: block;
+    }
+
+    .tile.selected {
+      border-color: #f9a826;
+      box-shadow: 0 0 20px rgba(249,168,38,0.7), 0 5px 15px rgba(0,0,0,0.4);
+    }
+
+    .tile.wrong {
+      animation: shake 0.5s;
+      border-color: #ff4444;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .feedback {
+      min-height: 90px;
+      padding: 16px;
+      background: rgba(26,42,58,0.8);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      font-size: 1.05rem;
+      line-height: 1.4;
+    }
+
+    button {
+      background: linear-gradient(135deg, #f9a826, #e8951e);
+      color: #1a2a3a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249,168,38,0.4); }
+
+    button:disabled{ opacity: 0.55; cursor: not-allowed; }
+
+    @media (max-width: 520px) {
+      .tile { font-size: 3rem; }
+      .game-board { gap: 12px; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>African Foodways: Spot the Odd One Out</h1>
-        <p class="subtitle">Click tiles to reveal. Select the impostor. Learn the nuances.</p>
-        <div class="stats">
-            <div class="stat">Round: <span id="round">1</span>/12</div>
-            <div class="stat">Score: <span id="score">0</span></div>
-        </div>
-        <div class="game-board" id="board"></div>
-        <div class="feedback" id="feedback">Click tiles to reveal images. Pick the odd one out.</div>
-        <button id="next-btn" style="display:none;">Next Round</button>
+  <div class="container">
+    <h1>African Foodways: Spot the Odd One Out</h1>
+    <p class="subtitle">Reveal all four. Then choose the impostor. Learn the nuance.</p>
+
+    <div class="stats" aria-label="Game statistics">
+      <div class="stat">Round: <span id="round">1</span>/<span id="total-rounds">0</span></div>
+      <div class="stat">Score: <span id="score">0</span></div>
     </div>
-    <script>
-     const rounds = [
-    {
+
+    <div class="game-board" id="board" aria-label="Odd one out board"></div>
+
+    <div class="feedback" id="feedback" aria-live="polite">
+      Click tiles to reveal images. After all four are revealed, pick the odd one out.
+    </div>
+
+    <button id="next-btn" style="display:none;">Next Round</button>
+  </div>
+
+  <script>
+    const rounds = [
+      {
         name: "Fufu Variations",
-        odd: 3,  // index of mashed-potato.jpg (0-based: 0=fufu1, 1=fufu2, 2=fufu3, 3=mashed)
+        odd: 3,
         images: ['fufu1.jpg', 'fufu2.jpg', 'fufu3.jpg', 'mashed-potato.jpg'],
-        explain: "Fufu: Pounded cassava, yam, or plantain—dense, glossy balls swallowed whole with soup. Mashed potatoes: Boiled and whipped creamy with butter/milk, eaten with fork."
-    },
-    {
+        explain: "Mashed potatoes are the odd one out. Fufu is pounded cassava/yam/plantain and eaten with soup; mashed potatoes are whipped and typically eaten with a fork."
+      },
+      {
         name: "Jollof Rice",
         odd: 3,
-        images: ['jollof1.jpg', 'jollof2.jpg', 'jollof3.jpg', 'fried-rice.jpg'],  // add your filenames
-        explain: "Jollof: Tomato-pepper stewed rice, uniform red sheen, grains integrated with sauce. Fried rice: Wok-tossed dry grains, separate pieces, visible egg/veg flecks."
-    },
-    // Add rounds 3–12 similarly
-        ];
-        let currentRound = 0, score = 0, revealed = new Set(), selected = null;
-        const boardEl = document.getElementById('board'), feedbackEl = document.getElementById('feedback'), nextBtn = document.getElementById('next-btn');
-        function initRound() {
-            revealed.clear(); selected = null; boardEl.innerHTML = '';
-            const round = rounds[currentRound];
-            round.images.forEach((img, i) => {
-                const tile = document.createElement('div'); tile.className = 'tile'; tile.dataset.index = i;
-                tile.textContent = '?'; tile.onclick = () => flip(tile);
-                boardEl.appendChild(tile);
-            });
-            feedbackEl.textContent = `Round ${currentRound+1}: ${round.name}`;
-            document.getElementById('round').textContent = currentRound+1;
-        }
-        function flip(tile) {
-            if (revealed.has(tile.dataset.index)) return;
-            revealed.add(tile.dataset.index);
-            const round = rounds[currentRound];
-            const img = document.createElement('img'); img.src = `images/${round.images[tile.dataset.index]}`; // Your folder
-            img.onerror = () => { img.src = 'https://via.placeholder.com/160x160/f9a826/1a2a3a?text=?'; };
-            tile.innerHTML = ''; tile.appendChild(img); tile.classList.add('flipped');
-            if (revealed.size === 4) feedbackEl.textContent += ' | Click the odd one.';
-        }
-        nextBtn.onclick = () => { if (currentRound < rounds.length-1) { currentRound++; initRound(); nextBtn.style.display='none'; } else alert(`Archive Master! Score: ${score}/12`); };
-        boardEl.onclick = (e) => {
-            if (e.target.classList.contains('tile')) {
-                const idx = parseInt(e.target.dataset.index);
-                const round = rounds[currentRound];
-                if (selected) { e.target.classList.remove('selected'); selected = null; }
-                else if (idx === round.odd) {
-                    e.target.classList.add('selected');
-                    feedbackEl.innerHTML = `<strong>Correct!</strong> ${round.explain}`;
-                    score++; document.getElementById('score').textContent = score;
-                    nextBtn.style.display = 'inline';
-                } else {
-                    e.target.classList.add('wrong', 'selected');
-                    setTimeout(() => e.target.classList.remove('wrong'), 500);
-                    feedbackEl.textContent += ' | Wrong. Hint: Texture/shape.';
-                }
-                selected = idx;
-            }
-        };
-        initRound();
-    </script>
-</body>
+        images: ['jollof1.jpg', 'jollof2.jpg', 'jollof3.jpg', 'fried-rice.jpg'],
+        explain: "Fried rice is the odd one out. Jollof is tomato-pepper stewed rice with a uniform red sheen; fried rice has drier grains and visible egg/veg."
+      }
+      // Add more rounds here
+    ];
 
+    let currentRound = 0;
+    let score = 0;
+
+    let revealed = new Set(); // stores indices (number)
+    let solved = false;
+
+    const boardEl = document.getElementById('board');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+
+    const roundEl = document.getElementById('round');
+    const totalRoundsEl = document.getElementById('total-rounds');
+    const scoreEl = document.getElementById('score');
+
+    totalRoundsEl.textContent = String(rounds.length);
+
+    function setFeedback(html) {
+      feedbackEl.innerHTML = html;
+    }
+
+    function initRound() {
+      revealed.clear();
+      solved = false;
+      boardEl.innerHTML = '';
+      nextBtn.style.display = 'none';
+
+      const round = rounds[currentRound];
+      roundEl.textContent = String(currentRound + 1);
+
+      setFeedback(`Round ${currentRound + 1}: <strong>${round.name}</strong><br/>Reveal all four tiles.`);
+
+      for (let i = 0; i < 4; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.dataset.index = String(i);
+        tile.tabIndex = 0;
+        tile.setAttribute('role', 'button');
+        tile.setAttribute('aria-label', `Tile ${i + 1}, hidden`);
+
+        tile.textContent = '?';
+        boardEl.appendChild(tile);
+      }
+    }
+
+    function flipTile(tileEl, idx) {
+      const round = rounds[currentRound];
+
+      revealed.add(idx);
+      tileEl.classList.add('flipped');
+      tileEl.textContent = '';
+
+      const img = document.createElement('img');
+      img.src = `images/${round.images[idx]}`;
+      img.alt = round.name;
+      img.onerror = () => {
+        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+            <rect width="100%" height="100%" fill="#f9a826"/>
+            <text x="50%" y="55%" text-anchor="middle" font-size="36" font-family="Arial" fill="#1a2a3a">?</text>
+          </svg>`
+        );
+      };
+
+      tileEl.appendChild(img);
+      tileEl.setAttribute('aria-label', `Tile ${idx + 1}, revealed`);
+
+      if (revealed.size === 4) {
+        setFeedback(`Round ${currentRound + 1}: <strong>${round.name}</strong><br/>Now click the odd one out.`);
+      }
+    }
+
+    function markSelection(tileEl, correct) {
+      // clear any previous selection glow
+      boardEl.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
+
+      tileEl.classList.add('selected');
+
+      if (!correct) {
+        tileEl.classList.add('wrong');
+        setTimeout(() => tileEl.classList.remove('wrong'), 500);
+      }
+    }
+
+    function handleTileClick(tileEl) {
+      if (!tileEl) return;
+      if (solved) return;
+
+      const idx = Number(tileEl.dataset.index);
+      const round = rounds[currentRound];
+
+      // If not revealed yet -> flip
+      if (!revealed.has(idx)) {
+        flipTile(tileEl, idx);
+        return;
+      }
+
+      // If revealed but not all 4 revealed yet -> do nothing (forces "reveal all" rule)
+      if (revealed.size < 4) {
+        setFeedback(`Keep going — reveal all four first.`);
+        return;
+      }
+
+      // Now: user is making a choice
+      const isCorrect = idx === round.odd;
+      markSelection(tileEl, isCorrect);
+
+      if (isCorrect) {
+        solved = true;
+        score += 1;
+        scoreEl.textContent = String(score);
+
+        setFeedback(`<strong>Correct!</strong> ${round.explain}`);
+        nextBtn.style.display = 'inline';
+      } else {
+        setFeedback(`Not quite. Try again. <em>Hint:</em> compare texture, base, and plating.`);
+      }
+    }
+
+    function nextRound() {
+      if (currentRound < rounds.length - 1) {
+        currentRound += 1;
+        initRound();
+      } else {
+        setFeedback(`<strong>Archive Master!</strong><br/>Final score: ${score}/${rounds.length}`);
+        nextBtn.style.display = 'none';
+      }
+    }
+
+    // Single event system (no competing onclick handlers)
+    boardEl.addEventListener('click', (e) => {
+      const tile = e.target.closest('.tile');
+      handleTileClick(tile);
+    });
+
+    // Keyboard: Enter/Space activates tile
+    boardEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const tile = e.target.closest('.tile');
+      if (!tile) return;
+      e.preventDefault();
+      handleTileClick(tile);
+    });
+
+    nextBtn.addEventListener('click', nextRound);
+
+    initRound();
+  </script>
+</body>
 </html>
