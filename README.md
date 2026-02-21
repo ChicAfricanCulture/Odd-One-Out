@@ -2,8 +2,6 @@
 
 An interactive visual recognition game that trains the eye to distinguish authentic African pantry staples from common look-alikes or Western substitutes. Four images appear; three are variations of one dish or ingredient, one is the impostor. Click to reveal, then select the odd one out. Correct choices unlock short, accurate explanations of texture, preparation, and cultural role.
 
-Live: African Foodways: Spot the Odd One Out
-
 Part of the **African Foodways Project** — field notes, recipes, and documentation at https://chicafricanculture.github.io/african-foodways-data/.
 
 ## Purpose
