@@ -1,1 +1,91 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>African Foodways: Spot the Odd One Out</title>
+    <style>
+        body { background: linear-gradient(135deg, #1a2a3a, #0d1b2a); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { max-width: 800px; text-align: center; }
+        h1 { color: #f9a826; font-size: 2rem; margin-bottom: 10px; }
+        .subtitle { color: #b8c7d6; margin-bottom: 30px; }
+        .game-board { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 400px; margin: 0 auto 30px; }
+        .tile { width: 180px; height: 180px; background: linear-gradient(145deg, #e8d0b0, #b08968); border: 3px solid #c49a6c; border-radius: 12px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 4rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .tile:hover { transform: scale(1.05); }
+        .tile.flipped { background: white; }
+        .tile img { width: 90%; height: 90%; object-fit: cover; border-radius: 8px; }
+        .tile.selected { border-color: #f9a826; box-shadow: 0 0 20px #f9a826; }
+        .tile.wrong { animation: shake 0.5s; border-color: #ff4444; }
+        @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+        .feedback { min-height: 100px; padding: 20px; background: rgba(26,42,58,0.8); border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; }
+        button { background: linear-gradient(135deg, #f9a826, #e8951e); color: #1a2a3a; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 10px; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249,168,38,0.4); }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .stat { font-size: 1.2rem; color: #f9a826; }
+        @media (max-width: 500px) { .tile { width: 140px; height: 140px; font-size: 3rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>African Foodways: Spot the Odd One Out</h1>
+        <p class="subtitle">Click tiles to reveal. Select the impostor. Learn the nuances.</p>
+        <div class="stats">
+            <div class="stat">Round: <span id="round">1</span>/12</div>
+            <div class="stat">Score: <span id="score">0</span></div>
+        </div>
+        <div class="game-board" id="board"></div>
+        <div class="feedback" id="feedback">Click tiles to reveal images. Pick the odd one out.</div>
+        <button id="next-btn" style="display:none;">Next Round</button>
+    </div>
+    <script>
+        const rounds = [
+            { name: "Fufu Variations", odd: 3, images: ['fufu1.png', 'fufu2.png', 'fufu3.png', 'mashed-potatoes.png'], explain: "Fufu: Pounded cassava/yam/plantain balls, swallowed whole. Mashed potatoes: Whipped, chewed creamy side." },
+            // Add 11 more: { name, odd (index 0-3), images[], explain }
+            { name: "Jollof Rice", odd: 3, images: ['jollof1.png', 'jollof2.png', 'jollof3.png', 'fried-rice.png'], explain: "Jollof: Stewed tomato/pepper rice. Fried: Wok-tossed dry with egg/veg." },
+            // ... etc. Use your PNGs or placeholders.
+        ];
+        let currentRound = 0, score = 0, revealed = new Set(), selected = null;
+        const boardEl = document.getElementById('board'), feedbackEl = document.getElementById('feedback'), nextBtn = document.getElementById('next-btn');
+        function initRound() {
+            revealed.clear(); selected = null; boardEl.innerHTML = '';
+            const round = rounds[currentRound];
+            round.images.forEach((img, i) => {
+                const tile = document.createElement('div'); tile.className = 'tile'; tile.dataset.index = i;
+                tile.textContent = '?'; tile.onclick = () => flip(tile);
+                boardEl.appendChild(tile);
+            });
+            feedbackEl.textContent = `Round ${currentRound+1}: ${round.name}`;
+            document.getElementById('round').textContent = currentRound+1;
+        }
+        function flip(tile) {
+            if (revealed.has(tile.dataset.index)) return;
+            revealed.add(tile.dataset.index);
+            const round = rounds[currentRound];
+            const img = document.createElement('img'); img.src = `images/${round.images[tile.dataset.index]}`; // Your folder
+            img.onerror = () => { img.src = 'https://via.placeholder.com/160x160/f9a826/1a2a3a?text=?'; };
+            tile.innerHTML = ''; tile.appendChild(img); tile.classList.add('flipped');
+            if (revealed.size === 4) feedbackEl.textContent += ' | Click the odd one.';
+        }
+        nextBtn.onclick = () => { if (currentRound < rounds.length-1) { currentRound++; initRound(); nextBtn.style.display='none'; } else alert(`Archive Master! Score: ${score}/12`); };
+        boardEl.onclick = (e) => {
+            if (e.target.classList.contains('tile')) {
+                const idx = parseInt(e.target.dataset.index);
+                const round = rounds[currentRound];
+                if (selected) { e.target.classList.remove('selected'); selected = null; }
+                else if (idx === round.odd) {
+                    e.target.classList.add('selected');
+                    feedbackEl.innerHTML = `<strong>Correct!</strong> ${round.explain}`;
+                    score++; document.getElementById('score').textContent = score;
+                    nextBtn.style.display = 'inline';
+                } else {
+                    e.target.classList.add('wrong', 'selected');
+                    setTimeout(() => e.target.classList.remove('wrong'), 500);
+                    feedbackEl.textContent += ' | Wrong. Hint: Texture/shape.';
+                }
+                selected = idx;
+            }
+        };
+        initRound();
+    </script>
+</body>
+</html>
