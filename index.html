@@ -38,11 +38,20 @@
         <button id="next-btn" style="display:none;">Next Round</button>
     </div>
     <script>
-        const rounds = [
-            { name: "Fufu Variations", odd: 3, images: ['fufu1.png', 'fufu2.png', 'fufu3.png', 'mashed-potatoes.png'], explain: "Fufu: Pounded cassava/yam/plantain balls, swallowed whole. Mashed potatoes: Whipped, chewed creamy side." },
-            // Add 11 more: { name, odd (index 0-3), images[], explain }
-            { name: "Jollof Rice", odd: 3, images: ['jollof1.png', 'jollof2.png', 'jollof3.png', 'fried-rice.png'], explain: "Jollof: Stewed tomato/pepper rice. Fried: Wok-tossed dry with egg/veg." },
-            // ... etc. Use your PNGs or placeholders.
+     const rounds = [
+    {
+        name: "Fufu Variations",
+        odd: 3,  // index of mashed-potato.jpg (0-based: 0=fufu1, 1=fufu2, 2=fufu3, 3=mashed)
+        images: ['fufu1.jpg', 'fufu2.jpg', 'fufu3.jpg', 'mashed-potato.jpg'],
+        explain: "Fufu: Pounded cassava, yam, or plantain—dense, glossy balls swallowed whole with soup. Mashed potatoes: Boiled and whipped creamy with butter/milk, eaten with fork."
+    },
+    {
+        name: "Jollof Rice",
+        odd: 3,
+        images: ['jollof1.jpg', 'jollof2.jpg', 'jollof3.jpg', 'fried-rice.jpg'],  // add your filenames
+        explain: "Jollof: Tomato-pepper stewed rice, uniform red sheen, grains integrated with sauce. Fried rice: Wok-tossed dry grains, separate pieces, visible egg/veg flecks."
+    },
+    // Add rounds 3–12 similarly
         ];
         let currentRound = 0, score = 0, revealed = new Set(), selected = null;
         const boardEl = document.getElementById('board'), feedbackEl = document.getElementById('feedback'), nextBtn = document.getElementById('next-btn');
@@ -88,4 +97,5 @@
         initRound();
     </script>
 </body>
+
 </html>
