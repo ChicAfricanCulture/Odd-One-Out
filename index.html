@@ -70,7 +70,7 @@
       height: 92%;
       object-fit: cover;
       border-radius: 8px;
-      pointer-events: none; /* important so clicks still go to the tile */
+      pointer-events: none;
       display: block;
     }
 
@@ -112,7 +112,6 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
     button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249,168,38,0.4); }
-
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
 
     @media (max-width: 520px) {
@@ -155,19 +154,16 @@
         images: ['jollof1.jpg', 'jollof2.jpg', 'jollof3.jpg', 'fried-rice.jpg'],
         explain: "Fried rice is the odd one out. Jollof is tomato-pepper stewed rice with a uniform red sheen; fried rice has drier grains and visible egg/veg."
       }
-      // Add more rounds here
     ];
 
     let currentRound = 0;
     let score = 0;
-
-    let revealed = new Set(); // stores indices (number)
+    let revealed = new Set(); // indices (number)
     let solved = false;
 
     const boardEl = document.getElementById('board');
     const feedbackEl = document.getElementById('feedback');
     const nextBtn = document.getElementById('next-btn');
-
     const roundEl = document.getElementById('round');
     const totalRoundsEl = document.getElementById('total-rounds');
     const scoreEl = document.getElementById('score');
@@ -176,6 +172,16 @@
 
     function setFeedback(html) {
       feedbackEl.innerHTML = html;
+    }
+
+    // ✅ GitHub Pages-safe asset helper (works from root or subfolders)
+    function githubPagesBase() {
+      const parts = location.pathname.split('/').filter(Boolean);
+      return parts.length ? `/${parts[0]}/` : `/`;
+    }
+
+    function assetUrl(relativePath) {
+      return `${location.origin}${githubPagesBase()}${relativePath.replace(/^\/+/, '')}`;
     }
 
     function initRound() {
@@ -196,7 +202,6 @@
         tile.tabIndex = 0;
         tile.setAttribute('role', 'button');
         tile.setAttribute('aria-label', `Tile ${i + 1}, hidden`);
-
         tile.textContent = '?';
         boardEl.appendChild(tile);
       }
@@ -204,21 +209,25 @@
 
     function flipTile(tileEl, idx) {
       const round = rounds[currentRound];
+      const fileName = round.images[idx]; // ✅ define this
 
       revealed.add(idx);
       tileEl.classList.add('flipped');
       tileEl.textContent = '';
 
       const img = document.createElement('img');
-      img.src = `images/${round.images[idx]}`;
+      img.src = assetUrl(`images/${fileName}`); // ✅ correct usage
       img.alt = round.name;
+
       img.onerror = () => {
-        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+        // Helpful placeholder
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
             <rect width="100%" height="100%" fill="#f9a826"/>
-            <text x="50%" y="55%" text-anchor="middle" font-size="36" font-family="Arial" fill="#1a2a3a">?</text>
-          </svg>`
-        );
+            <text x="50%" y="45%" text-anchor="middle" font-size="16" font-family="Arial" fill="#1a2a3a">Missing</text>
+            <text x="50%" y="62%" text-anchor="middle" font-size="11" font-family="Arial" fill="#1a2a3a">${("images/" + fileName).replace(/</g,"&lt;")}</text>
+          </svg>`;
+        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
       };
 
       tileEl.appendChild(img);
@@ -230,9 +239,7 @@
     }
 
     function markSelection(tileEl, correct) {
-      // clear any previous selection glow
       boardEl.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
-
       tileEl.classList.add('selected');
 
       if (!correct) {
@@ -248,19 +255,16 @@
       const idx = Number(tileEl.dataset.index);
       const round = rounds[currentRound];
 
-      // If not revealed yet -> flip
       if (!revealed.has(idx)) {
         flipTile(tileEl, idx);
         return;
       }
 
-      // If revealed but not all 4 revealed yet -> do nothing (forces "reveal all" rule)
       if (revealed.size < 4) {
         setFeedback(`Keep going — reveal all four first.`);
         return;
       }
 
-      // Now: user is making a choice
       const isCorrect = idx === round.odd;
       markSelection(tileEl, isCorrect);
 
@@ -268,7 +272,6 @@
         solved = true;
         score += 1;
         scoreEl.textContent = String(score);
-
         setFeedback(`<strong>Correct!</strong> ${round.explain}`);
         nextBtn.style.display = 'inline';
       } else {
@@ -286,13 +289,11 @@
       }
     }
 
-    // Single event system (no competing onclick handlers)
     boardEl.addEventListener('click', (e) => {
       const tile = e.target.closest('.tile');
       handleTileClick(tile);
     });
 
-    // Keyboard: Enter/Space activates tile
     boardEl.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const tile = e.target.closest('.tile');
