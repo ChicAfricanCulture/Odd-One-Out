@@ -21,17 +21,10 @@ Your investor (Mr. Okafor) arrives in 2 hours expecting a proper Naija spread �
 
 Identify the correct family members in time to save dinner and impress your investor!
 
-## 🛠️ Tech Stack
+##Tech Stack
 
 - HTML5
 - CSS3
 - JavaScript
 - GitHub Pages for hosting
 
-##Local Development
-
-To run this game locally:
-
-1. Clone the repository
-```bash
-git clone https://github.com/ChicAfricanCulture/Contact-Mix-Up.git
