@@ -1,316 +1,449 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>African Foodways: Spot the Odd One Out</title>
-
-  <style>
-    body {
-      background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
-      color: #e0e0e0;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      margin: 0;
-    }
-
-    .container { max-width: 900px; width: 100%; text-align: center; }
-
-    h1 { color: #f9a826; font-size: 2rem; margin: 10px 0; }
-    .subtitle { color: #b8c7d6; margin-bottom: 18px; }
-
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      gap: 14px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .stat { font-size: 1.15rem; color: #f9a826; }
-
-    .game-board {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(120px, 1fr));
-      gap: 15px;
-      max-width: 460px;
-      margin: 0 auto 18px;
-    }
-
-    .tile {
-      aspect-ratio: 1 / 1;
-      background: linear-gradient(145deg, #e8d0b0, #b08968);
-      border: 3px solid #c49a6c;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-      outline: none;
-    }
-
-    .tile:hover { transform: scale(1.03); }
-
-    .tile:focus-visible{
-      border-color: #f9a826;
-      box-shadow: 0 0 0 3px rgba(249,168,38,0.35), 0 5px 15px rgba(0,0,0,0.4);
-    }
-
-    .tile.flipped { background: #ffffff; }
-
-    .tile img {
-      width: 92%;
-      height: 92%;
-      object-fit: cover;
-      border-radius: 8px;
-      pointer-events: none;
-      display: block;
-    }
-
-    .tile.selected {
-      border-color: #f9a826;
-      box-shadow: 0 0 20px rgba(249,168,38,0.7), 0 5px 15px rgba(0,0,0,0.4);
-    }
-
-    .tile.wrong {
-      animation: shake 0.5s;
-      border-color: #ff4444;
-    }
-
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-
-    .feedback {
-      min-height: 90px;
-      padding: 16px;
-      background: rgba(26,42,58,0.8);
-      border-radius: 10px;
-      margin-bottom: 14px;
-      font-size: 1.05rem;
-      line-height: 1.4;
-    }
-
-    button {
-      background: linear-gradient(135deg, #f9a826, #e8951e);
-      color: #1a2a3a;
-      border: none;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      margin: 8px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-    }
-    button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249,168,38,0.4); }
-    button:disabled{ opacity: 0.55; cursor: not-allowed; }
-
-    @media (max-width: 520px) {
-      .tile { font-size: 3rem; }
-      .game-board { gap: 12px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Mix-Up: The Investor is Coming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #2c3e50;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .game-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: #f5f5f5;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none; /* hidden until start */
+        }
+        .status-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        .quality-meter {
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .quality-fill {
+            height: 100%;
+            width: 50%;
+            background: #27ae60;
+            transition: width 0.3s;
+        }
+        .quality-text {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .kitchen {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .pots {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        .pot {
+            text-align: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            width: 30%;
+        }
+        .pot.need-help {
+            border: 2px solid #e74c3c;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+            100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+        }
+        .pot-icon img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .contacts {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .contact {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .contact:hover {
+            background: #e3f2fd;
+        }
+        .contact:last-child { border-bottom: none; }
+        .contact-name { font-weight: bold; margin-bottom: 5px; }
+        .contact-preview { font-size: 12px; color: #7f8c8d; }
+        .message-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 300px;
+            display: none;
+            z-index: 1000;
+        }
+        .message-popup.show { display: block; }
+        .message-text { margin-bottom: 20px; line-height: 1.5; }
+        .message-buttons { display: flex; gap: 10px; justify-content: center; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-primary { background: #27ae60; color: white; }
+        .btn-secondary { background: #e74c3c; color: white; }
+        .btn-small { background: #3498db; color: white; padding: 5px 15px; font-size: 14px; }
+        .group-chat {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .chat-sender { font-weight: bold; color: #2c3e50; margin-bottom: 3px; }
+        .chat-text { color: #555; }
+        .new-message { animation: highlight 1s; }
+        @keyframes highlight {
+            0% { background: #fffacd; }
+            100% { background: #f0f0f0; }
+        }
+        .investor-text {
+            background: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        /* How-to-play full screen */
+        #how-to-play {
+            position: fixed;
+            inset: 0;
+            background: #1a2634;
+            color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 2000;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>African Foodways: Spot the Odd One Out</h1>
-    <p class="subtitle">Reveal all four. Then choose the impostor. Learn the nuance.</p>
 
-    <div class="stats" aria-label="Game statistics">
-      <div class="stat">Round: <span id="round">1</span>/<span id="total-rounds">0</span></div>
-      <div class="stat">Score: <span id="score">0</span></div>
+<!-- HOW TO PLAY OVERLAY -->
+<div id="how-to-play">
+    <h1 style="font-size: 2.4em; margin: 0 0 25px; color: #e67e22;">Contact Mix-Up:<br>The Investor is Coming! 🍲📞</h1>
+    <div style="max-width: 480px; font-size: 1.1em; line-height: 1.6;">
+        <p>Your investor (Mr. Okafor) arrives in 2 hours expecting a proper Naija spread — but your phone contacts are completely scrambled.</p>
+        <p><strong>Goal:</strong> Quickly figure out who’s really who so the right family members can help rescue your Jollof, Egusi, and Fufu before everything burns or quality tanks.</p>
+        <ul style="text-align: left; margin: 25px auto; padding-left: 20px; max-width: 420px; list-style-type: square;">
+            <li>Tap any contact → listen to their voicemail</li>
+            <li>Decide: Is this actually your Mom / Aunty / Uncle… or a restaurant / wrong number?</li>
+            <li>✅ Correct guess → quality improves + family member helps dish</li>
+            <li>❌ Wrong guess → quality drops (softer early on) + group chat gets suspicious</li>
+            <li>Watch the chat — missed calls and hang-ups make them connect dots</li>
+        </ul>
+        <p style="font-weight: bold; color: #e74c3c; margin: 20px 0;">Don’t burn the food. Don’t make Aunty angry. Good luck!</p>
     </div>
+    <button id="start-game-btn" class="btn btn-primary" style="margin-top: 30px; font-size: 1.5em; padding: 16px 50px;">
+        Start Cooking – No Time to Waste! 🔥
+    </button>
+</div>
 
-    <div class="game-board" id="board" aria-label="Odd one out board"></div>
-
-    <div class="feedback" id="feedback" aria-live="polite">
-      Click tiles to reveal images. After all four are revealed, pick the odd one out.
+<div class="game-container" id="game-container">
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+        <div class="timer">⏰ Investor arrives in: <span id="timer">2:00</span></div>
+        <div class="quality-meter">
+            <div class="quality-fill" id="quality-fill" style="width: 50%;"></div>
+        </div>
+        <div class="quality-text">Dish Quality: <span id="quality">50</span>%</div>
     </div>
+    
+    <!-- INVESTOR TEXT -->
+    <div class="investor-text" id="investor-text" style="display: none;"></div>
+    
+    <!-- KITCHEN -->
+    <div class="kitchen">
+        <h3>🔥 Your Kitchen</h3>
+        <div class="pots">
+            <div class="pot need-help" id="pot-jollof">
+                <div class="pot-icon"><img src="jollof.jpg" alt="Jollof Rice"></div>
+                <div>Jollof Rice</div>
+                <small>Needs Mom</small>
+            </div>
+            <div class="pot need-help" id="pot-egusi">
+                <div class="pot-icon"><img src="egusi.jpg" alt="Egusi Soup"></div>
+                <div>Egusi Soup</div>
+                <small>Needs Aunt</small>
+            </div>
+            <div class="pot need-help" id="pot-fufu">
+                <div class="pot-icon"><img src="fufu.jpg" alt="Fufu"></div>
+                <div>Fufu</div>
+                <small>Needs Uncle</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CONTACTS -->
+    <h3>📱 Mixed Up Contacts</h3>
+    <div class="contacts" id="contacts-list"></div>
+    
+    <!-- GROUP CHAT -->
+    <div class="group-chat" id="group-chat">
+        <h4>💬 Omo Naija Family</h4>
+        <div id="chat-messages">
+            <div class="chat-message">
+                <div class="chat-sender">Cousin:</div>
+                <div class="chat-text">Anyone heard from [You] today?</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <button id="next-btn" style="display:none;">Next Round</button>
-  </div>
+<!-- MESSAGE POPUP -->
+<div class="message-popup" id="message-popup">
+    <div class="message-text" id="message-text">Voicemail plays...</div>
+    <div class="message-buttons">
+        <button class="btn btn-primary" id="btn-fix">✅ This is [Person]</button>
+        <button class="btn btn-secondary" id="btn-wrong">❌ Wrong Number</button>
+    </div>
+    <div style="text-align: center; margin-top: 10px;">
+        <button class="btn-small" id="btn-hangup">📞 Hang Up (Do Nothing)</button>
+    </div>
+</div>
 
-  <script>
-    const rounds = [
-      {
-        name: "Fufu Variations",
-        odd: 3,
-        images: ['fufu1.jpg', 'fufu2.jpg', 'fufu3.jpg', 'mashed-potato.jpg'],
-        explain: "Mashed potatoes are the odd one out. Fufu is pounded cassava/yam/plantain and eaten with soup; mashed potatoes are whipped and typically eaten with a fork."
-      },{
-  name: "Banana vs. Plantain",
-  odd: 3,
-  images: ["r02_banana_1.jpg","r02_banana_2.jpg","r02_banana_3.jpg","r02_plantain_odd.jpg"],
-  explain: "Plantains are starchier and usually cooked; bananas are sweeter and often eaten raw."
-}
-      {
-        name: "Jollof Rice",
-        odd: 3,
-        images: ['jollof1.jpg', 'jollof2.jpg', 'jollof3.jpg', 'fried-rice.jpg'],
-        explain: "Fried rice is the odd one out. Jollof is tomato-pepper stewed rice with a uniform red sheen; fried rice has drier grains and visible egg/veg."
-      }
-    ];
+<script>
+    let gameState = {
+        timer: 120,
+        quality: 50,
+        mistakes: 0,
+        contacts: [
+            { displayName: "❤️ Mom", realIdentity: "restaurant", voicemail: "Thank you for calling Jollof Palace, home of the best jollof in the city! We're open 11am to 10pm.", type: "restaurant", knownAs: null },
+            { displayName: "👨 Dad", realIdentity: "uncle", voicemail: "My person! This is Uncle! You caught me at a bad time, I'm eating. Leave message!", type: "family", knownAs: null },
+            { displayName: "🌸 Aunt", realIdentity: "mom", voicemail: "Hello? ... Oh, it's you! Why you no call me yesterday? I made your favorite. Anyway, leave message. Or better, come eat. Love you.", type: "family", knownAs: null },
+            { displayName: "👴 Uncle", realIdentity: "aunt", voicemail: "Eh! Who this? ... Oh, voicemail. This is Aunty. If you're my real family, leave message. If you're selling something, God punish you.", type: "family", knownAs: null },
+            { displayName: "⭐ Cousin", realIdentity: "cousin", voicemail: "Yo, it's your favorite cousin! Leave a message, I got you. Unless you're asking for money. Then I'm busy.", type: "family", knownAs: null },
+            { displayName: "🍽️ Jollof Palace", realIdentity: "restaurant", voicemail: "Jollof Palace! Today's special: jollof rice with grilled chicken.", type: "restaurant", knownAs: null },
+            { displayName: "🍽️ Mama Put", realIdentity: "restaurant", voicemail: "Mama Put! Where the food is always ready! We open at noon.", type: "restaurant", knownAs: null },
+            { displayName: "🍽️ Buka Kitchen", realIdentity: "dad", voicemail: "This is Dad. If it's important, I'll call back. If it's your mother, she's in the kitchen.", type: "family", knownAs: null },
+            { displayName: "🍕 Pizza Place", realIdentity: "wrong", voicemail: "Domino's Pizza! Would you like to place an order? Call back for delivery!", type: "wrong", knownAs: null },
+            { displayName: "💼 Kehinde (Work)", realIdentity: "wrong", voicemail: "Hey, it's Kehinde from work! Haven't heard from you in months! Call me back!", type: "wrong", knownAs: null }
+        ],
+        familyHelps: {
+            mom:    { dish: 'jollof', boostGiven: false },
+            aunt:   { dish: 'egusi',  boostGiven: false },
+            uncle:  { dish: 'fufu',   boostGiven: false }
+        },
+        callsMade: 0,
+        currentCallIndex: -1
+    };
 
-    let currentRound = 0;
-    let score = 0;
-    let revealed = new Set(); // indices (number)
-    let solved = false;
+    function updateTimer() {
+        if (gameState.timer <= 0) {
+            document.getElementById('timer').innerText = "0:00";
+            alert("INVESTOR ARRIVES! Your food is not ready...");
+            return;
+        }
+        gameState.timer -= 1;
+        let minutes = Math.floor(gameState.timer / 60);
+        let seconds = gameState.timer % 60;
+        document.getElementById('timer').innerText = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
 
-    const boardEl = document.getElementById('board');
-    const feedbackEl = document.getElementById('feedback');
-    const nextBtn = document.getElementById('next-btn');
-    const roundEl = document.getElementById('round');
-    const totalRoundsEl = document.getElementById('total-rounds');
-    const scoreEl = document.getElementById('score');
-
-    totalRoundsEl.textContent = String(rounds.length);
-
-    function setFeedback(html) {
-      feedbackEl.innerHTML = html;
+        if (gameState.timer === 105) showInvestorText("Mr. Okafor: Traffic is light. I might be early!");
+        if (gameState.timer === 75) showInvestorText("Mr. Okafor: I saw your mother at the market. She didn't mention you were cooking today...");
+        if (gameState.timer === 45) showInvestorText("Mr. Okafor: Your father just called me. He asked how your cooking was coming along. I didn't know what to say.");
+        if (gameState.timer === 15) showInvestorText("Mr. Okafor: I'm 15 minutes out. Hope everything is ready!");
     }
 
-    // ✅ GitHub Pages-safe asset helper (works from root or subfolders)
-    function githubPagesBase() {
-      const parts = location.pathname.split('/').filter(Boolean);
-      return parts.length ? `/${parts[0]}/` : `/`;
+    function showInvestorText(message) {
+        let textBox = document.getElementById('investor-text');
+        textBox.innerText = "📱 " + message;
+        textBox.style.display = 'block';
+        setTimeout(() => { textBox.style.display = 'none'; }, 8000);
     }
 
-    function assetUrl(relativePath) {
-      return `${location.origin}${githubPagesBase()}${relativePath.replace(/^\/+/, '')}`;
+    function renderContacts() {
+        let html = '';
+        let sorted = [...gameState.contacts].sort((a,b) => {
+            if (a.knownAs && !b.knownAs) return -1;
+            if (!a.knownAs && b.knownAs) return 1;
+            return 0;
+        });
+        for (let i = 0; i < sorted.length; i++) {
+            let c = sorted[i];
+            let origIndex = gameState.contacts.indexOf(c);
+            let name = c.knownAs ? `✅ ${c.knownAs}` : c.displayName;
+            html += `<div class="contact" onclick="callContact(${origIndex})">
+                <div class="contact-name">${name}</div>
+                <div class="contact-preview">Click to call...</div>
+            </div>`;
+        }
+        document.getElementById('contacts-list').innerHTML = html;
     }
 
-    function initRound() {
-      revealed.clear();
-      solved = false;
-      boardEl.innerHTML = '';
-      nextBtn.style.display = 'none';
-
-      const round = rounds[currentRound];
-      roundEl.textContent = String(currentRound + 1);
-
-      setFeedback(`Round ${currentRound + 1}: <strong>${round.name}</strong><br/>Reveal all four tiles.`);
-
-      for (let i = 0; i < 4; i++) {
-        const tile = document.createElement('div');
-        tile.className = 'tile';
-        tile.dataset.index = String(i);
-        tile.tabIndex = 0;
-        tile.setAttribute('role', 'button');
-        tile.setAttribute('aria-label', `Tile ${i + 1}, hidden`);
-        tile.textContent = '?';
-        boardEl.appendChild(tile);
-      }
+    function callContact(index) {
+        gameState.currentCallIndex = index;
+        let contact = gameState.contacts[index];
+        document.getElementById('message-text').innerText = "📞 Voicemail: " + contact.voicemail;
+        document.getElementById('message-popup').classList.add('show');
     }
 
-    function flipTile(tileEl, idx) {
-      const round = rounds[currentRound];
-      const fileName = round.images[idx]; // ✅ define this
+    document.getElementById('btn-fix').addEventListener('click', () => {
+        let index = gameState.currentCallIndex;
+        let contact = gameState.contacts[index];
+        let message = '';
+        let qualityChange = 0;
 
-      revealed.add(idx);
-      tileEl.classList.add('flipped');
-      tileEl.textContent = '';
+        if (contact.type === 'family') {
+            message = "✅ Contact saved! You now know who this is.";
+            qualityChange = 12;
 
-      const img = document.createElement('img');
-      img.src = assetUrl(`images/${fileName}`); // ✅ correct usage
-      img.alt = round.name;
+            let realIdLower = contact.realIdentity.toLowerCase();
+            if (gameState.familyHelps[realIdLower] && !gameState.familyHelps[realIdLower].boostGiven) {
+                let dish = gameState.familyHelps[realIdLower].dish;
+                qualityChange += 18;
+                gameState.familyHelps[realIdLower].boostGiven = true;
+                message += ` ${realIdLower.charAt(0).toUpperCase() + realIdLower.slice(1)} is helping with ${dish}!`;
 
-      img.onerror = () => {
-        // Helpful placeholder
-        const svg = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
-            <rect width="100%" height="100%" fill="#f9a826"/>
-            <text x="50%" y="45%" text-anchor="middle" font-size="16" font-family="Arial" fill="#1a2a3a">Missing</text>
-            <text x="50%" y="62%" text-anchor="middle" font-size="11" font-family="Arial" fill="#1a2a3a">${("images/" + fileName).replace(/</g,"&lt;")}</text>
-          </svg>`;
-        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-      };
+                let potId = 'pot-' + dish;
+                document.getElementById(potId).classList.remove('need-help');
+                document.getElementById(potId).querySelector('small').innerText = 'Helped by ' + realIdLower.charAt(0).toUpperCase() + realIdLower.slice(1);
+            }
 
-      tileEl.appendChild(img);
-      tileEl.setAttribute('aria-label', `Tile ${idx + 1}, revealed`);
+            if (!contact.knownAs) {
+                contact.knownAs = contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1);
+                renderContacts();
+            }
+        } else {
+            gameState.mistakes++;
+            qualityChange = (gameState.mistakes <= 3) ? -6 : -15;
+            message = "❌ That's not family! Wasted time.";
+        }
 
-      if (revealed.size === 4) {
-        setFeedback(`Round ${currentRound + 1}: <strong>${round.name}</strong><br/>Now click the odd one out.`);
-      }
-    }
+        gameState.quality += qualityChange;
+        gameState.quality = Math.max(0, Math.min(100, gameState.quality));
+        document.getElementById('quality').innerText = gameState.quality;
+        document.getElementById('quality-fill').style.width = gameState.quality + '%';
 
-    function markSelection(tileEl, correct) {
-      boardEl.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
-      tileEl.classList.add('selected');
-
-      if (!correct) {
-        tileEl.classList.add('wrong');
-        setTimeout(() => tileEl.classList.remove('wrong'), 500);
-      }
-    }
-
-    function handleTileClick(tileEl) {
-      if (!tileEl) return;
-      if (solved) return;
-
-      const idx = Number(tileEl.dataset.index);
-      const round = rounds[currentRound];
-
-      if (!revealed.has(idx)) {
-        flipTile(tileEl, idx);
-        return;
-      }
-
-      if (revealed.size < 4) {
-        setFeedback(`Keep going — reveal all four first.`);
-        return;
-      }
-
-      const isCorrect = idx === round.odd;
-      markSelection(tileEl, isCorrect);
-
-      if (isCorrect) {
-        solved = true;
-        score += 1;
-        scoreEl.textContent = String(score);
-        setFeedback(`<strong>Correct!</strong> ${round.explain}`);
-        nextBtn.style.display = 'inline';
-      } else {
-        setFeedback(`Not quite. Try again. <em>Hint:</em> compare texture, base, and plating.`);
-      }
-    }
-
-    function nextRound() {
-      if (currentRound < rounds.length - 1) {
-        currentRound += 1;
-        initRound();
-      } else {
-        setFeedback(`<strong>Archive Master!</strong><br/>Final score: ${score}/${rounds.length}`);
-        nextBtn.style.display = 'none';
-      }
-    }
-
-    boardEl.addEventListener('click', (e) => {
-      const tile = e.target.closest('.tile');
-      handleTileClick(tile);
+        addGroupChatMessage('System', message);
+        document.getElementById('message-popup').classList.remove('show');
+        checkGameStatus();
     });
 
-    boardEl.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      const tile = e.target.closest('.tile');
-      if (!tile) return;
-      e.preventDefault();
-      handleTileClick(tile);
+    document.getElementById('btn-wrong').addEventListener('click', () => {
+        let index = gameState.currentCallIndex;
+        let contact = gameState.contacts[index];
+        let message = '';
+        let qualityChange = 0;
+
+        if (contact.type === 'restaurant' || contact.type === 'wrong') {
+            message = "✅ Good call – that's not family.";
+            qualityChange = 5;
+        } else {
+            gameState.mistakes++;
+            qualityChange = (gameState.mistakes <= 3) ? -8 : -20;
+            message = "❌ That WAS your " + contact.realIdentity + "! Hung up on family!";
+            addGroupChatMessage(contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1), "Did you just call and hang up?!");
+        }
+
+        gameState.quality += qualityChange;
+        gameState.quality = Math.max(0, Math.min(100, gameState.quality));
+        document.getElementById('quality').innerText = gameState.quality;
+        document.getElementById('quality-fill').style.width = gameState.quality + '%';
+
+        addGroupChatMessage('System', message);
+        document.getElementById('message-popup').classList.remove('show');
+        checkGameStatus();
     });
 
-    nextBtn.addEventListener('click', nextRound);
+    document.getElementById('btn-hangup').addEventListener('click', () => {
+        addGroupChatMessage('System', '📞 Hung up without leaving message.');
+        gameState.timer -= 2;
+        if (gameState.timer < 0) gameState.timer = 0;
+        document.getElementById('message-popup').classList.remove('show');
+    });
 
-    initRound();
-  </script>
+    function addGroupChatMessage(sender, message) {
+        let chatDiv = document.getElementById('chat-messages');
+        let newMsg = document.createElement('div');
+        newMsg.className = 'chat-message new-message';
+        newMsg.innerHTML = `<div class="chat-sender">${sender}:</div><div class="chat-text">${message}</div>`;
+        chatDiv.appendChild(newMsg);
+        let container = document.getElementById('group-chat');
+        container.scrollTop = container.scrollHeight;
+        setTimeout(() => newMsg.classList.remove('new-message'), 1000);
+    }
+
+    function checkGameStatus() {
+        if (gameState.quality <= 20) alert("⚠️ Food almost ruined! Investor soon!");
+        if (gameState.quality <= 0) alert("❌ GAME OVER - Food burnt. Family disappointed.");
+        if (gameState.quality >= 80) addGroupChatMessage('Mom', 'Something tells me [You] is cooking good today...');
+    }
+
+    // START GAME
+    document.getElementById('start-game-btn').addEventListener('click', () => {
+        document.getElementById('how-to-play').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        renderContacts();
+        setInterval(updateTimer, 3000);
+        // Delayed chat messages
+        setTimeout(() => addGroupChatMessage('Aunt', 'My phone acting up. Weird calls.'), 10000);
+        setTimeout(() => addGroupChatMessage('Uncle', 'Same! Got call from "Jollof Palace". Hung up!'), 20000);
+        setTimeout(() => addGroupChatMessage('Mom', 'Wait... [You] called but hung up. Cooking maybe?'), 35000);
+        setTimeout(() => addGroupChatMessage('Dad', 'Mr. Okafor called. Going to [You]’s place. Nobody told me.'), 50000);
+        setTimeout(() => {
+            addGroupChatMessage('Mom', 'WHAT?! Nobody tells me anything!');
+            addGroupChatMessage('Aunt', 'Eh! [You] better call me NOW!');
+        }, 55000);
+    });
+</script>
 </body>
 </html>
-
