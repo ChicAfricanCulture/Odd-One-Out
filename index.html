@@ -163,20 +163,21 @@
             font-style: italic;
         }
         /* How-to-play full screen */
-        #how-to-play {
-            position: fixed;
-            inset: 0;
-            background: #1a2634;
-            color: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            z-index: 2000;
-            font-family: Arial, sans-serif;
-        }
+       #how-to-play {
+    position: fixed;
+    inset: 0;
+    background: #1a2634;
+    color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 15px; /* reduced for small screens */
+    box-sizing: border-box;
+    overflow-y: auto; /* allow scroll if text too long */
+    z-index: 2000;
+}
     </style>
 </head>
 <body>
@@ -451,6 +452,7 @@
 </script>
 </body>
 </html>
+
 
 
 
