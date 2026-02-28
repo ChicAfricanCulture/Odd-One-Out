@@ -11,16 +11,15 @@
             margin: 0;
             padding: 20px;
             color: #333;
-        }
-        .game-container {
-            max-width: 450px;
-            margin: 0 auto;
-            background: #f5f5f5;
-            border-radius: 30px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: none; /* hidden until start */
-        }
+        }.game-container {
+    max-width: 100%; /* change from 450px to allow full width on phone */
+    width: 100%;
+    margin: 0 auto;
+    background: #f5f5f5;
+    border-radius: 0; /* remove rounding on mobile if it clips */
+    padding: 15px; /* tighter padding */
+    box-shadow: none; /* optional: shadows can cause perceived overflow */
+}
         .status-bar {
             background: white;
             border-radius: 20px;
@@ -447,4 +446,5 @@
 </script>
 </body>
 </html>
+
 
