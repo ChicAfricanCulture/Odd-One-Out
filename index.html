@@ -2,1230 +2,606 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Investor Is Coming — Kitchen Panic</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spice Interference — Prototype</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
       height: 100%;
       margin: 0;
-      padding: 0;
-      overflow: hidden; /* IMPORTANT: no page scrolling */
+      overflow: hidden; /* single-screen, no page scroll */
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #0f1720;
-      color: #111;
+      background: #ffffff;
+      color: #0f1720;
     }
-    img { max-width: 100%; height: auto; display: block; }
 
-    :root { --w: min(520px, 100%); }
-
-    /* App is a single viewport screen */
-    .app {
-      width: var(--w);
+    /* Centered mobile-first stage */
+    .wrap {
+      height: 100%;
+      width: min(520px, 100%);
       margin: 0 auto;
-      height: 100svh;               /* mobile-safe full height */
       display: flex;
       flex-direction: column;
+    }
+
+    /* HUD */
+    .hud {
+      padding: 10px 12px;
+      display: flex;
       gap: 10px;
-      padding: 10px 12px 12px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(15, 23, 32, 0.08);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(6px);
     }
-
-    /* ======= TOP HUD (sticky, always visible) ======= */
-    .top {
-      display: grid;
-      gap: 8px;
-      flex: 0 0 auto;
-    }
-
+    .hud-left { display: grid; gap: 2px; }
     .title {
-      color: #fff;
       font-weight: 1000;
       letter-spacing: 0.2px;
-      font-size: 18px;
+      font-size: 14px;
       line-height: 1.1;
+    }
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.75;
+      line-height: 1.2;
+    }
+    .hud-right {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hud {
-      background: #f6f6f6;
-      border-radius: 16px;
-      padding: 10px;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .row { display: flex; gap: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-    .label { font-size: 12px; color: #5f6b76; margin-bottom: 3px; }
-    .value { font-size: 18px; font-weight: 1000; }
-    .danger { color: #e74c3c; }
-    .good { color: #27ae60; }
-    .warn { color: #e67e22; }
-
-    .bars { display: grid; gap: 8px; margin-top: 8px; }
-    .barWrap {
-      background: #fff;
-      border-radius: 14px;
-      padding: 8px;
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-    .barTop { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-    .barName { font-weight: 900; color: #20303a; }
-    .barVal { font-weight: 900; font-size: 12px; color: #20303a; opacity: 0.85; }
-    .bar { height: 14px; background: #e9eef2; border-radius: 999px; overflow: hidden; }
-    .fill { height: 100%; width: 0%; border-radius: 999px; transition: width 120ms linear; }
-
-    /* Goal panel (this is the “strategy anchor”) */
-    .goal {
-      margin-top: 8px;
-      background: #0f1720;
-      color: #fff;
-      border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-    .goal strong { font-weight: 1000; }
-    .goalLine {
-      display: flex;
-      justify-content: space-between;
       gap: 10px;
-      font-size: 13px;
-      line-height: 1.3;
-      margin: 4px 0;
-      opacity: 0.95;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
-    .goalTag {
+    .pill {
+      background: rgba(15, 23, 32, 0.06);
+      border: 1px solid rgba(15, 23, 32, 0.10);
+      padding: 8px 10px;
+      border-radius: 999px;
       font-weight: 900;
-      opacity: 0.9;
+      font-size: 12px;
       white-space: nowrap;
     }
+    .pill strong { font-weight: 1000; }
 
-    /* ======= MAIN PLAY AREA (no page scroll) ======= */
-    .main {
+    /* Canvas fills remaining space */
+    .stage {
       flex: 1 1 auto;
-      min-height: 0; /* allows internal scroll areas */
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      min-height: 0;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: manipulation; /* better mobile taps */
     }
 
-    /* Phone status (always visible line) */
-    .phoneMini {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 16px;
-      padding: 10px;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
+    /* Overlay screens */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(255,255,255,0.65);
     }
-    .miniLeft { display: grid; gap: 2px; }
-    .miniTitle { font-weight: 1000; }
-    .miniSub { font-size: 12px; opacity: 0.85; }
-    .miniBtns { display: flex; gap: 8px; align-items: center; }
-
-    .btn {
+    .overlay.show { display: flex; }
+    .card {
+      width: min(520px, 100%);
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 32, 0.10);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+    }
+    .card h1 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.15;
+      font-weight: 1000;
+    }
+    .card p {
+      margin: 0 0 12px;
+      line-height: 1.45;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    .btnRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
       border: none;
       border-radius: 14px;
       padding: 10px 12px;
-      font-weight: 900;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn:active { transform: translateY(1px); }
-    .btn-stir { background: #2ecc71; color: #fff; }
-    .btn-heat { background: #3498db; color: #fff; }
-    .btn-ignore { background: #95a5a6; color: #fff; }
-    .btn-danger { background: #e74c3c; color: #fff; }
-    .btn-outline {
-      background: transparent;
-      border: 2px solid rgba(255,255,255,0.35);
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-    }
-
-    /* Ring banner appears inline (no scrolling needed) */
-    .phoneBanner {
-      display: none;
-      background: #111b26;
-      color: #fff;
-      border-radius: 16px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-    .phoneBanner.show { display: block; }
-    .ringing { animation: wobble 0.25s infinite linear; }
-    @keyframes wobble {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(1px); }
-      50% { transform: translateX(-1px); }
-      75% { transform: translateX(2px); }
-      100% { transform: translateX(0); }
-    }
-
-    /* Pots area scrolls internally if needed */
-    .kitchen {
-      background: #f6f6f6;
-      border-radius: 16px;
-      padding: 10px;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.25);
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow: auto; /* internal scroll only here if needed */
-    }
-
-    .pot {
-      background: #fff;
-      border-radius: 18px;
-      padding: 10px;
-      border: 1px solid rgba(0,0,0,0.08);
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-    .pot:last-child { margin-bottom: 0; }
-
-    .potHead {
-      display: grid;
-      grid-template-columns: 72px 1fr;
-      gap: 10px;
-      align-items: center;
-    }
-    .potImg {
-      width: 72px;
-      height: 72px;
-      border-radius: 16px;
-      object-fit: cover;
-      background: #ddd;
-    }
-    .potTitle { margin: 0; font-weight: 1000; color: #13202e; }
-    .potSub { margin: 2px 0 0; font-size: 12px; color: #5f6b76; font-weight: 800; }
-
-    .potActions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-
-    .steam, .smoke {
-      position: absolute; inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 200ms ease;
-      filter: blur(1px);
-    }
-    .steam {
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.40), transparent 45%),
-        radial-gradient(circle at 60% 35%, rgba(255,255,255,0.30), transparent 50%),
-        radial-gradient(circle at 35% 70%, rgba(255,255,255,0.22), transparent 55%);
-    }
-    .smoke {
-      background:
-        radial-gradient(circle at 40% 35%, rgba(0,0,0,0.20), transparent 55%),
-        radial-gradient(circle at 65% 60%, rgba(0,0,0,0.18), transparent 60%);
-    }
-    .pot.good .steam { opacity: 0.65; }
-    .pot.bad .smoke { opacity: 0.55; }
-    .pot.critical {
-      animation: shake 0.22s infinite linear;
-      border-color: rgba(231, 76, 60, 0.55);
-      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.18) inset;
-    }
-    @keyframes shake {
-      0% { transform: translate(0,0); }
-      25% { transform: translate(1px,-1px); }
-      50% { transform: translate(-1px,1px); }
-      75% { transform: translate(1px,1px); }
-      100% { transform: translate(0,0); }
-    }
-
-    /* ======= CHAT DRAWER (always reachable, no scrolling page) ======= */
-    .chatDock {
-      flex: 0 0 auto;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 16px;
-      color: #fff;
-      overflow: hidden;
-    }
-    .chatHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .chatTitle { font-weight: 1000; }
-    .badge {
-      min-width: 26px;
-      height: 22px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #e74c3c;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       font-weight: 1000;
-      font-size: 12px;
-    }
-    .chatBody {
-      display: none;
-      background: #fff;
-      color: #111;
-      max-height: 180px;
-      overflow: auto;
-      padding: 10px;
-    }
-    .chatDock.open .chatBody { display: block; }
-
-    .msg { background: #f1f3f5; border-radius: 14px; padding: 8px 10px; margin-bottom: 8px; }
-    .from { font-weight: 1000; font-size: 12px; color: #13202e; margin-bottom: 2px; }
-    .text { font-size: 13px; color: #3b4a55; }
-
-    /* ======= VOICEMAIL MODAL ======= */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      z-index: 5000;
-    }
-    .overlay.show { display: flex; }
-    .modal {
-      width: var(--w);
-      background: #fff;
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
-    }
-    .modal h2 { margin: 0 0 8px; font-size: 16px; color: #13202e; }
-    .modal p { margin: 0 0 12px; color: #3d4b55; line-height: 1.4; font-size: 14px; }
-    .guessGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .guessGrid .btn { width: 100%; }
-
-    /* ======= TOASTS (used for urgency + chat ping) ======= */
-    .toasts {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 16px;
-      width: var(--w);
-      padding: 0 12px;
-      display: grid;
-      gap: 8px;
-      z-index: 6000;
-      pointer-events: none;
-    }
-    .toast {
-      background: rgba(15, 23, 32, 0.92);
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-weight: 900;
-      letter-spacing: 0.1px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      animation: toastIn 180ms ease;
-    }
-    @keyframes toastIn {
-      from { transform: translateY(6px); opacity: 0; }
-      to   { transform: translateY(0); opacity: 1; }
-    }
-
-    /* ======= HOW TO PLAY + END ======= */
-    #howto {
-      position: fixed;
-      inset: 0;
+      cursor: pointer;
       background: #0f1720;
-      color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      padding: 14px;
-      z-index: 8000;
-    }
-    .howwrap {
-      width: var(--w);
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
-      overflow: auto;
-      padding-bottom: 10px;
-    }
-    .howwrap h1 {
-      margin: 10px 0 0;
-      font-size: clamp(1.6rem, 5vw, 2.1rem);
-      line-height: 1.1;
-      color: #f39c12;
-      text-align: center;
-      font-weight: 1000;
-    }
-    .howtext {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px;
-      padding: 12px;
-      line-height: 1.55;
-      font-size: 14px;
-    }
-    .howactions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding-bottom: 6px; }
-    .chip {
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.16);
       color: #fff;
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-weight: 900;
-      font-size: 12px;
     }
+    button:active { transform: translateY(1px); }
 
-    #end {
-      position: fixed;
+    /* Subtle wrong-click flash */
+    .flash {
+      position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      z-index: 9000;
+      pointer-events: none;
+      background: rgba(231, 76, 60, 0.12);
+      opacity: 0;
+      transition: opacity 120ms ease;
     }
-    #end.show { display: flex; }
-    .endcard {
-      width: var(--w);
-      background: #fff;
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+    .flash.show { opacity: 1; }
+
+    /* Tiny bottom hint text */
+    .hint {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      font-size: 12px;
+      opacity: 0.75;
+      text-align: center;
+      pointer-events: none;
     }
-    .endrow { display: flex; gap: 10px; flex-wrap: wrap; }
   </style>
 </head>
-
 <body>
-  <!-- HOW TO PLAY -->
-  <div id="howto" role="dialog" aria-modal="true">
-    <div class="howwrap">
-      <h1>Investor Is Coming 🍲📞<br/>Kitchen Panic Edition</h1>
+  <div class="wrap">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="title" id="hudTitle">Spice Interference — Prototype</div>
+        <div class="subtitle" id="hudSubtitle">Warm-up: pop one bubble</div>
+      </div>
+      <div class="hud-right">
+        <div class="pill">⏳ <strong id="timeVal">—</strong></div>
+        <div class="pill">🎯 Left: <strong id="leftVal">—</strong></div>
+      </div>
+    </div>
 
-      <div class="howtext">
-        <div style="font-weight:1000; margin-bottom:6px;">What you’re trying to do</div>
-        <ul style="margin:0; padding-left:18px;">
-          <li><strong>Stabilize 2 dishes</strong> (get Mom/Aunt/Uncle help by guessing calls correctly).</li>
-          <li>Keep <strong>Quality ≥ 60%</strong> when the timer hits 0.</li>
-          <li>Keep Heat in the <strong>green zone (50–70)</strong>.</li>
-          <li>If <strong>Suspicion hits 100</strong>, investor arrives early and you lose.</li>
-        </ul>
-        <div style="margin-top:10px; opacity:0.9;">
-          Images expected: <code>images/jollof.jpg</code>, <code>images/egusi.jpg</code>, <code>images/fufu.jpg</code>
+    <div class="stage">
+      <canvas id="c"></canvas>
+      <div class="flash" id="flash"></div>
+
+      <!-- Start / warm-up overlay -->
+      <div class="overlay show" id="startOverlay">
+        <div class="card">
+          <h1>Pop one bubble to calibrate.</h1>
+          <p>
+            This game is simple on purpose: the rule stays constant.
+            Your mind is the difficulty.
+          </p>
+          <div class="btnRow">
+            <button id="beginWarmupBtn" type="button">Start Warm-up</button>
+          </div>
         </div>
       </div>
 
-      <div class="howactions">
-        <button id="startBtn" class="btn btn-stir" type="button">Start Cooking 🔥</button>
-        <button id="muteBtn" class="btn btn-outline" type="button">Sound: On</button>
-        <span class="chip">Mobile-first</span>
-        <span class="chip">4:00 sprint</span>
+      <!-- End overlay -->
+      <div class="overlay" id="endOverlay">
+        <div class="card">
+          <h1 id="endTitle">Result</h1>
+          <p id="endText"></p>
+          <div class="btnRow">
+            <button id="restartBtn" type="button">Play Again</button>
+          </div>
+        </div>
       </div>
+
+      <div class="hint" id="hint">Tip: read the name, but your brain will read the scent words too.</div>
     </div>
   </div>
 
-  <div class="app">
-    <div class="top">
-      <div class="title">
-        <span>🍲 Kitchen Panic</span>
-        <button id="muteBtn2" class="btn btn-outline" type="button">🔊</button>
-      </div>
+<script>
+(() => {
+  /***********************
+   *  Canvas setup
+   ***********************/
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
 
-      <div class="hud">
-        <div class="row">
-          <div>
-            <div class="label">⏳ Time Left</div>
-            <div class="value danger" id="timeVal">4:00</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="label">⭐ Quality</div>
-            <div class="value good"><span id="qualityVal">50</span>%</div>
-          </div>
-        </div>
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas);
 
-        <div class="bars">
-          <div class="barWrap">
-            <div class="barTop">
-              <div class="barName">🕵🏾 Suspicion</div>
-              <div class="barVal"><span id="susVal">0</span>%</div>
-            </div>
-            <div class="bar"><div class="fill" id="susFill" style="width:0%; background:#e74c3c;"></div></div>
-          </div>
+  /***********************
+   *  UI elements
+   ***********************/
+  const hudSubtitle = document.getElementById("hudSubtitle");
+  const timeVal = document.getElementById("timeVal");
+  const leftVal = document.getElementById("leftVal");
+  const startOverlay = document.getElementById("startOverlay");
+  const endOverlay = document.getElementById("endOverlay");
+  const endTitle = document.getElementById("endTitle");
+  const endText = document.getElementById("endText");
+  const flash = document.getElementById("flash");
 
-          <div class="barWrap">
-            <div class="barTop">
-              <div class="barName">⭐ Quality</div>
-              <div class="barVal"><span id="qualityVal2">50</span>%</div>
-            </div>
-            <div class="bar"><div class="fill" id="qualityFill" style="width:50%; background:#27ae60;"></div></div>
-          </div>
-        </div>
+  document.getElementById("beginWarmupBtn").addEventListener("click", () => {
+    startOverlay.classList.remove("show");
+    beginWarmup();
+  });
 
-        <div class="goal">
-          <div class="goalLine">
-            <span class="goalTag">🎯 WIN:</span>
-            <span>Quality <strong>≥ 60%</strong> + Help <strong>2 dishes</strong></span>
-          </div>
-          <div class="goalLine">
-            <span class="goalTag">✅ Helped:</span>
-            <span><strong id="helpCount">0</strong>/3 stabilized</span>
-          </div>
-          <div class="goalLine">
-            <span class="goalTag">📞 Next call:</span>
-            <span>~<strong id="nextCall">?</strong>s</span>
-          </div>
-        </div>
-      </div>
-    </div>
+  document.getElementById("restartBtn").addEventListener("click", () => {
+    endOverlay.classList.remove("show");
+    beginWarmup();
+  });
 
-    <div class="main">
-      <div class="phoneMini">
-        <div class="miniLeft">
-          <div class="miniTitle">📱 Phone + Family Chaos</div>
-          <div class="miniSub" id="miniSub">Keep cooking. Calls will interrupt you.</div>
-        </div>
-        <div class="miniBtns">
-          <button id="openChatBtn" class="btn btn-outline" type="button">Chat</button>
-        </div>
-      </div>
+  /***********************
+   *  Game data
+   ***********************/
+  // Dark, saturated bubble colors (high contrast against white)
+  const SPICES = [
+    { key: "turmeric", name: "TURMERIC", scent: "earthy gold", color: "#2E5E4E" }, // deep green
+    { key: "ginger",   name: "GINGER",   scent: "sharp warm",  color: "#3B2A6F" }, // deep purple
+    { key: "cumin",    name: "CUMIN",    scent: "dusty smoke", color: "#1B4F72" }, // deep blue
+    { key: "paprika",  name: "PAPRIKA",  scent: "sweet red",   color: "#6A1B1A" }, // deep maroon
+    { key: "clove",    name: "CLOVE",    scent: "dark sweet",  color: "#2C3E50" }, // slate
+    { key: "cinnamon", name: "CINNAMON", scent: "warm wood",   color: "#4E342E" }, // brown
+    { key: "pepper",   name: "BLACK PEPPER", scent: "sharp bite", color: "#263238" } // charcoal
+  ];
 
-      <div class="phoneBanner" id="phoneBanner">
-        <div style="font-weight:1000;">📞 Incoming Call — Answer fast!</div>
-        <div style="font-size:12px; opacity:0.85; margin-top:2px;">Ignoring raises suspicion.</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-          <button id="answerBtn" class="btn btn-stir" type="button">Answer</button>
-          <button id="ignoreBtn" class="btn btn-ignore" type="button">Ignore</button>
-        </div>
-      </div>
+  const TARGET_KEY = "turmeric";
+  const ROUND_SECONDS = 30;
+  const TOTAL_BUBBLES = 12;
+  const TARGET_COUNT = 3;
 
-      <div class="kitchen" id="kitchen">
-        <!-- Jollof -->
-        <div class="pot" id="pot-jollof">
-          <div class="steam"></div><div class="smoke"></div>
-          <div class="potHead">
-            <img class="potImg" src="images/jollof.jpg" alt="Jollof" />
-            <div>
-              <p class="potTitle">🍚 Jollof Rice</p>
-              <p class="potSub" id="help-jollof">Needs Mom’s help</p>
-            </div>
-          </div>
+  /***********************
+   *  Bubbles
+   ***********************/
+  // We’ll draw text in near-black for maximum readability.
+  const TEXT_MAIN = "#0B0F14";
+  const TEXT_SUB  = "rgba(11,15,20,0.86)";
 
-          <div style="margin-top:10px;">
-            <div class="barTop">
-              <div class="barName">🔥 Heat</div>
-              <div class="barVal"><span id="heat-jollof">45</span>/100</div>
-            </div>
-            <div class="bar"><div class="fill" id="fill-jollof" style="width:45%; background:#f1c40f;"></div></div>
-          </div>
+  function rand(a, b) { return Math.random() * (b - a) + a; }
+  function randi(a, b) { return Math.floor(rand(a, b + 1)); }
 
-          <div class="potActions">
-            <button class="btn btn-stir" data-action="stir" data-dish="jollof" type="button">Stir</button>
-            <button class="btn btn-heat" data-action="lower" data-dish="jollof" type="button">Lower Heat</button>
-          </div>
-        </div>
+  class Bubble {
+    constructor(x, y, r, vx, vy, spice) {
+      this.x = x; this.y = y; this.r = r;
+      this.vx = vx; this.vy = vy;
+      this.spice = spice;
+      this.alive = true;
 
-        <!-- Egusi -->
-        <div class="pot" id="pot-egusi">
-          <div class="steam"></div><div class="smoke"></div>
-          <div class="potHead">
-            <img class="potImg" src="images/egusi.jpg" alt="Egusi" />
-            <div>
-              <p class="potTitle">🥣 Egusi Soup</p>
-              <p class="potSub" id="help-egusi">Needs Aunt’s help</p>
-            </div>
-          </div>
+      // pop animation
+      this.popping = false;
+      this.popT = 0; // 0..1
+    }
 
-          <div style="margin-top:10px;">
-            <div class="barTop">
-              <div class="barName">🔥 Heat</div>
-              <div class="barVal"><span id="heat-egusi">40</span>/100</div>
-            </div>
-            <div class="bar"><div class="fill" id="fill-egusi" style="width:40%; background:#f1c40f;"></div></div>
-          </div>
+    hit(px, py) {
+      const dx = px - this.x;
+      const dy = py - this.y;
+      return (dx*dx + dy*dy) <= (this.r * this.r);
+    }
 
-          <div class="potActions">
-            <button class="btn btn-stir" data-action="stir" data-dish="egusi" type="button">Stir</button>
-            <button class="btn btn-heat" data-action="lower" data-dish="egusi" type="button">Lower Heat</button>
-          </div>
-        </div>
+    pop() {
+      if (!this.alive || this.popping) return;
+      this.popping = true;
+      this.popT = 0;
+    }
 
-        <!-- Fufu -->
-        <div class="pot" id="pot-fufu">
-          <div class="steam"></div><div class="smoke"></div>
-          <div class="potHead">
-            <img class="potImg" src="images/fufu.jpg" alt="Fufu" />
-            <div>
-              <p class="potTitle">🍠 Fufu</p>
-              <p class="potSub" id="help-fufu">Needs Uncle’s help</p>
-            </div>
-          </div>
+    update(dt, w, h, speedMul=1) {
+      if (!this.alive) return;
 
-          <div style="margin-top:10px;">
-            <div class="barTop">
-              <div class="barName">🔥 Heat</div>
-              <div class="barVal"><span id="heat-fufu">35</span>/100</div>
-            </div>
-            <div class="bar"><div class="fill" id="fill-fufu" style="width:35%; background:#f1c40f;"></div></div>
-          </div>
+      if (this.popping) {
+        this.popT += dt * 3.2; // pop speed
+        if (this.popT >= 1) {
+          this.alive = false;
+        }
+        return;
+      }
 
-          <div class="potActions">
-            <button class="btn btn-stir" data-action="stir" data-dish="fufu" type="button">Stir</button>
-            <button class="btn btn-heat" data-action="lower" data-dish="fufu" type="button">Lower Heat</button>
-          </div>
-        </div>
-      </div>
-    </div>
+      this.x += this.vx * dt * speedMul;
+      this.y += this.vy * dt * speedMul;
 
-    <!-- Chat drawer -->
-    <div class="chatDock" id="chatDock">
-      <div class="chatHeader" id="chatHeader">
-        <div class="chatTitle">💬 Family Chat</div>
-        <div class="badge" id="unreadBadge" style="display:none;">0</div>
-      </div>
-      <div class="chatBody" id="chatBody"></div>
-    </div>
-  </div>
+      // bounce (with padding)
+      const pad = 2;
+      if (this.x - this.r < pad) { this.x = this.r + pad; this.vx *= -1; }
+      if (this.x + this.r > w - pad) { this.x = w - this.r - pad; this.vx *= -1; }
+      if (this.y - this.r < pad) { this.y = this.r + pad; this.vy *= -1; }
+      if (this.y + this.r > h - pad) { this.y = h - this.r - pad; this.vy *= -1; }
+    }
 
-  <!-- Voicemail modal -->
-  <div class="overlay" id="callOverlay" role="dialog" aria-modal="true">
-    <div class="modal">
-      <h2>📞 Voicemail</h2>
-      <p id="callText">…</p>
-      <div style="font-weight:1000; margin: 0 0 10px; color:#13202e;">Who is it?</div>
+    draw(ctx) {
+      if (!this.alive) return;
 
-      <div class="guessGrid">
-        <button class="btn btn-stir"   data-guess="mom"   type="button">Mom</button>
-        <button class="btn btn-stir"   data-guess="aunt"  type="button">Aunt</button>
-        <button class="btn btn-stir"   data-guess="uncle" type="button">Uncle</button>
-        <button class="btn btn-heat"   data-guess="dad"   type="button">Dad</button>
-        <button class="btn btn-danger" data-guess="not"   type="button" style="grid-column: 1 / -1;">Not Family</button>
-      </div>
+      // pop scale/alpha
+      let scale = 1;
+      let alpha = 1;
+      if (this.popping) {
+        // ease-out shrink
+        const t = Math.min(1, this.popT);
+        scale = 1 - t * 0.9;
+        alpha = 1 - t;
+      }
 
-      <div class="row" style="margin-top: 12px;">
-        <button id="hangupBtn" class="btn btn-ignore" type="button">Hang Up</button>
-        <div style="font-size:12px; color:#60707b; font-weight:800;">
-          Tip: Your first goal is stabilize 2 dishes.
-        </div>
-      </div>
-    </div>
-  </div>
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(this.x, this.y);
+      ctx.scale(scale, scale);
 
-  <!-- End screen -->
-  <div id="end" role="dialog" aria-modal="true">
-    <div class="endcard">
-      <h2 id="endTitle">End</h2>
-      <p id="endText" style="color:#3d4b55; font-weight:800;"></p>
-      <div class="endrow">
-        <button id="restartBtn" class="btn btn-stir" type="button">Restart</button>
-        <button id="closeEndBtn" class="btn btn-ignore" type="button">Close</button>
-      </div>
-    </div>
-  </div>
+      // Circle
+      ctx.beginPath();
+      ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = this.spice.color;
+      ctx.fill();
 
-  <div class="toasts" id="toasts"></div>
+      // Soft highlight ring (subtle)
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.stroke();
 
-  <script>
-    /***********************
-     *  CONFIG
-     ***********************/
-    const GAME_SECONDS = 4 * 60;
-    const OPT_LOW = 50, OPT_HIGH = 70;
+      // Text (high contrast on dark bubble)
+      const nameSize = Math.max(12, Math.min(16, this.r * 0.32));
+      const scentSize = Math.max(10, Math.min(13, this.r * 0.24));
 
-    /***********************
-     *  STATE
-     ***********************/
-    const state = {
-      running: false,
-      t: GAME_SECONDS,
-      tick: 0,
-      quality: 50,
-      suspicion: 0,
-      helped: { mom: false, aunt: false, uncle: false, dad: false },
-      helpedCount: 0,
-      heat: { jollof: 45, egusi: 40, fufu: 35 },
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-      ringing: false,
-      ringTimer: 6,
-      currentCall: null,
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
+      ctx.font = `1000 ${nameSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      ctx.fillText(this.spice.name, 0, -scentSize * 0.35);
 
-      soundOn: true,
-      audio: { ctx: null, master: null, ringing: false }
-    };
+      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.font = `800 ${scentSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      ctx.fillText(this.spice.scent, 0, scentSize * 0.85);
 
-    const $ = (id) => document.getElementById(id);
-    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-    const rand = (a, b) => Math.random() * (b - a) + a;
-    const randi = (a, b) => Math.floor(rand(a, b + 1));
+      ctx.restore();
+    }
+  }
 
-    /***********************
-     *  CALL POOL
-     ***********************/
-    const CALLS = [
-      { who: "mom",  voicemail: "Hello? It’s your mother. Why is your pot sounding like war?? I’m coming. Don’t burn my jollof." },
-      { who: "aunt", voicemail: "Aunty here. If your egusi is not thick, don’t call me. Put crayfish! Put palm oil! Ah!" },
-      { who: "uncle",voicemail: "Uncle speaking. I hope you’re turning that fufu like cement. If it gets lumpy, I will not forgive you." },
-      { who: "dad",  voicemail: "This is Dad. Investor called me. Keep calm. Focus. Don’t let the group chat derail you." },
+  /***********************
+   *  Game states
+   ***********************/
+  let mode = "idle"; // idle | warmup | round | end
+  let bubbles = [];
+  let lastTs = 0;
 
-      { who: "not",  voicemail: "Hello hello… you dey order? We fit deliver fast. Just send location." },
-      { who: "not",  voicemail: "Good afternoon! This line is for catering bookings. Deposit required." },
-      { who: "not",  voicemail: "Hi! Quick call about your application—please return my call today." },
-      { who: "not",  voicemail: "Thank you for calling. Press 1 for delivery, press 2 for pickup." },
+  let timeLeft = ROUND_SECONDS;
+  let targetsLeft = TARGET_COUNT;
 
-      { who: "aunt", voicemail: "If anybody is selling something, God punish you—oh! It’s voicemail. It’s Aunty. Call back now now." },
-      { who: "mom",  voicemail: "I’m at the market. I heard investor is coming. You didn’t tell me? Hmm. I’m watching you." },
+  // For the “bubbles screensaver” feel
+  const BASE_SPEED = 34; // px/sec baseline drift
+  const SPEED_MUL_ROUND1 = 1.0;
+
+  function setHUDWarmup() {
+    hudSubtitle.textContent = "Warm-up: pop one bubble";
+    timeVal.textContent = "—";
+    leftVal.textContent = "—";
+  }
+
+  function setHUDRound() {
+    hudSubtitle.textContent = "Round 1: Collect TURMERIC";
+    timeVal.textContent = `${timeLeft}s`;
+    leftVal.textContent = String(targetsLeft);
+  }
+
+  function showEnd(win) {
+    mode = "end";
+    endOverlay.classList.add("show");
+    if (win) {
+      endTitle.textContent = "✅ Good focus.";
+      endText.textContent = `You cleared all TURMERIC bubbles with ${timeLeft}s left.`;
+    } else {
+      endTitle.textContent = "⏳ Time.";
+      endText.textContent = `Targets left: ${targetsLeft}. Try again—your brain will interfere less with practice.`;
+    }
+  }
+
+  function flashWrong() {
+    flash.classList.add("show");
+    setTimeout(() => flash.classList.remove("show"), 120);
+  }
+
+  function spawnBubblesWarmup() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+
+    const spice = SPICES.find(s => s.key === TARGET_KEY);
+    const r = Math.min(w, h) * 0.18; // big warm-up bubble
+    const x = w * 0.5;
+    const y = h * 0.48;
+
+    bubbles = [
+      new Bubble(x, y, r, rand(-10, 10), rand(-10, 10), {
+        ...spice,
+        // For warmup, make it explicit
+        name: "POP ME",
+        scent: "tap to begin"
+      })
     ];
+  }
 
-    /***********************
-     *  AUDIO (simple beeps + ringtone pattern)
-     ***********************/
-    function ensureAudio() {
-      if (state.audio.ctx) return;
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const master = ctx.createGain();
-      master.gain.value = 0.18;
-      master.connect(ctx.destination);
-      state.audio.ctx = ctx;
-      state.audio.master = master;
+  function spawnBubblesRound() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+
+    const all = SPICES.slice();
+    const target = all.find(s => s.key === TARGET_KEY);
+    const distractors = all.filter(s => s.key !== TARGET_KEY);
+
+    // Choose bubble sizes for readability on mobile
+    const minR = Math.max(42, Math.min(56, w * 0.12));
+    const maxR = Math.max(52, Math.min(70, w * 0.16));
+
+    // Create spices list for round
+    const roundSpices = [];
+    for (let i = 0; i < TARGET_COUNT; i++) roundSpices.push(target);
+    while (roundSpices.length < TOTAL_BUBBLES) {
+      roundSpices.push(distractors[randi(0, distractors.length - 1)]);
     }
 
-    function playBeep(freq = 440, dur = 0.08) {
-      if (!state.soundOn) return;
-      ensureAudio();
-      const ctx = state.audio.ctx;
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.frequency.value = freq;
-      o.type = "sine";
-      g.gain.value = 0.0001;
-      o.connect(g);
-      g.connect(state.audio.master);
-
-      const t = ctx.currentTime;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.7, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.start(t);
-      o.stop(t + dur + 0.02);
+    // Shuffle
+    for (let i = roundSpices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [roundSpices[i], roundSpices[j]] = [roundSpices[j], roundSpices[i]];
     }
 
-    function startRingtone() {
-      if (!state.soundOn) return;
-      ensureAudio();
-      if (state.audio.ringing) return;
-      state.audio.ringing = true;
+    // Place bubbles (simple random placement; overlap allowed)
+    bubbles = roundSpices.map((sp, idx) => {
+      const r = rand(minR, maxR);
 
-      const pattern = [
-        { f: 880, d: 0.10 }, { f: 660, d: 0.10 }, { f: 880, d: 0.10 }, { f: 660, d: 0.10 },
-        { f: 0,   d: 0.18 },
-        { f: 880, d: 0.10 }, { f: 660, d: 0.10 }, { f: 880, d: 0.10 }, { f: 660, d: 0.10 },
-        { f: 0,   d: 0.45 },
-      ];
+      // Keep bubbles mostly in view; allow overlap naturally
+      const x = rand(r + 6, w - r - 6);
+      const y = rand(r + 6, h - r - 6);
 
-      let i = 0;
-      function step() {
-        if (!state.audio.ringing) return;
-        const item = pattern[i % pattern.length];
-        if (item.f > 0) playBeep(item.f, item.d);
-        i++;
-        setTimeout(step, Math.max(40, item.d * 1000));
-      }
-      step();
-    }
+      // Random drift
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(BASE_SPEED * 0.75, BASE_SPEED * 1.25);
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
 
-    function stopRingtone() { state.audio.ringing = false; }
-
-    /***********************
-     *  UI: toasts + chat
-     ***********************/
-    function toast(msg) {
-      const holder = $("toasts");
-      const el = document.createElement("div");
-      el.className = "toast";
-      el.textContent = msg;
-      holder.appendChild(el);
-      setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 200ms ease"; }, 1400);
-      setTimeout(() => el.remove(), 1700);
-    }
-
-    let unread = 0;
-    function setUnread(n) {
-      unread = n;
-      const badge = $("unreadBadge");
-      if (unread <= 0) {
-        badge.style.display = "none";
-      } else {
-        badge.style.display = "inline-flex";
-        badge.textContent = String(unread);
-      }
-    }
-
-    function chat(from, text) {
-      const body = $("chatBody");
-      const m = document.createElement("div");
-      m.className = "msg";
-      m.innerHTML = `<div class="from">${from}:</div><div class="text">${text}</div>`;
-      body.appendChild(m);
-      body.scrollTop = body.scrollHeight;
-
-      // Key fix: every chat message is ALSO a toast so you feel urgency
-      toast(`💬 ${from}: ${text}`);
-
-      // unread badge unless chat open
-      const open = $("chatDock").classList.contains("open");
-      if (!open) setUnread(unread + 1);
-    }
-
-    function openChat() {
-      $("chatDock").classList.add("open");
-      setUnread(0);
-    }
-    function toggleChat() {
-      const dock = $("chatDock");
-      dock.classList.toggle("open");
-      if (dock.classList.contains("open")) setUnread(0);
-    }
-
-    /***********************
-     *  HUD
-     ***********************/
-    function formatTime(s) {
-      const m = Math.floor(s / 60);
-      const ss = s % 60;
-      return `${m}:${ss < 10 ? "0" : ""}${ss}`;
-    }
-
-    function setBar(fillId, pct, color) {
-      const el = $(fillId);
-      el.style.width = `${clamp(pct,0,100)}%`;
-      if (color) el.style.background = color;
-    }
-
-    function updateHUD() {
-      $("timeVal").textContent = formatTime(state.t);
-      $("qualityVal").textContent = Math.round(state.quality);
-      $("qualityVal2").textContent = Math.round(state.quality);
-      $("susVal").textContent = Math.round(state.suspicion);
-      $("helpCount").textContent = String(state.helpedCount);
-      $("nextCall").textContent = String(Math.max(0, Math.round(state.ringTimer)));
-
-      // quality color
-      const q = state.quality;
-      let qc = "#27ae60";
-      if (q < 60) qc = "#f1c40f";
-      if (q < 35) qc = "#e67e22";
-      if (q < 20) qc = "#e74c3c";
-      setBar("qualityFill", q, qc);
-      setBar("susFill", state.suspicion, "#e74c3c");
-
-      // heats + pot states
-      for (const dish of ["jollof","egusi","fufu"]) {
-        const h = state.heat[dish];
-        $(`heat-${dish}`).textContent = Math.round(h);
-
-        const pct = clamp(h,0,100);
-        let c = "#f1c40f";
-        if (h >= OPT_LOW && h <= OPT_HIGH) c = "#2ecc71";
-        if (h > OPT_HIGH) c = "#e67e22";
-        if (h > 85) c = "#e74c3c";
-        setBar(`fill-${dish}`, pct, c);
-
-        const pot = $(`pot-${dish}`);
-        pot.classList.remove("good","bad","critical");
-        if (h >= OPT_LOW && h <= OPT_HIGH) pot.classList.add("good");
-        if (h > OPT_HIGH || h < 25) pot.classList.add("bad");
-        if (h > 88) pot.classList.add("critical");
-      }
-    }
-
-    function setHelpText() {
-      $("help-jollof").textContent = state.helped.mom ? "✅ Mom is auto-stabilizing this pot" : "Needs Mom’s help";
-      $("help-egusi").textContent  = state.helped.aunt ? "✅ Aunt is auto-stabilizing this pot" : "Needs Aunt’s help";
-      $("help-fufu").textContent   = state.helped.uncle ? "✅ Uncle is auto-stabilizing this pot" : "Needs Uncle’s help";
-    }
-
-    /***********************
-     *  Mechanics
-     ***********************/
-    function changeQuality(delta) { state.quality = clamp(state.quality + delta, 0, 100); }
-    function changeSuspicion(delta) { state.suspicion = clamp(state.suspicion + delta, 0, 100); }
-    function costTime(seconds) { state.t = Math.max(0, state.t - seconds); }
-
-    function heatRiseRate() {
-      let base = 1.05;
-      if (state.tick > 60) base = 1.15;
-      if (state.tick > 120) base = 1.28;
-      if (state.tick > 160) base = 1.40;
-      if (state.tick > 200) base = 1.55;
-      return base;
-    }
-
-    function applyAutoHelp(dish) {
-      if (dish === "jollof" && state.helped.mom) state.heat.jollof += (60 - state.heat.jollof) * 0.10;
-      if (dish === "egusi" && state.helped.aunt) state.heat.egusi += (60 - state.heat.egusi) * 0.10;
-      if (dish === "fufu"  && state.helped.uncle) state.heat.fufu += (60 - state.heat.fufu) * 0.10;
-    }
-
-    function qualityFromHeat() {
-      let decay = 0;
-      for (const dish of ["jollof","egusi","fufu"]) {
-        const h = state.heat[dish];
-        if (h >= OPT_LOW && h <= OPT_HIGH) decay += -0.05;
-        else if (h > 88) decay += 0.55;
-        else if (h > OPT_HIGH) decay += 0.22;
-        else if (h < 20) decay += 0.28;
-        else if (h < 30) decay += 0.14;
-      }
-      decay += (state.suspicion / 100) * 0.05;
-      changeQuality(-decay);
-    }
-
-    function scheduleNextCall() {
-      const urgency = (1 - state.t / GAME_SECONDS);
-      const susBoost = state.suspicion / 100;
-      const min = clamp(7 - urgency*3 - susBoost*2, 3, 7);
-      const max = clamp(12 - urgency*4 - susBoost*2, 5, 14);
-      state.ringTimer = randi(Math.floor(min), Math.floor(max));
-    }
-
-    function pickCall() {
-      // Bias toward not-yet-helped family
-      const pool = [];
-      for (const c of CALLS) {
-        if (c.who === "mom" && !state.helped.mom) pool.push(c,c,c);
-        else if (c.who === "aunt" && !state.helped.aunt) pool.push(c,c,c);
-        else if (c.who === "uncle" && !state.helped.uncle) pool.push(c,c,c);
-        else if (c.who === "dad" && !state.helped.dad) pool.push(c,c);
-        else pool.push(c);
-      }
-      return pool[randi(0, pool.length - 1)];
-    }
-
-    function ringPhone() {
-      if (state.ringing) return;
-      state.ringing = true;
-      $("phoneBanner").classList.add("show","ringing");
-      $("miniSub").textContent = "📞 PHONE RINGING — answer now!";
-      startRingtone();
-      toast("📞 Phone ringing!");
-    }
-
-    function stopRingingUI() {
-      state.ringing = false;
-      $("phoneBanner").classList.remove("ringing","show");
-      $("miniSub").textContent = "Keep cooking. Calls will interrupt you.";
-      stopRingtone();
-    }
-
-    function openCallModal(call) {
-      $("callText").textContent = call.voicemail;
-      $("callOverlay").classList.add("show");
-    }
-
-    function closeCallModal() {
-      $("callOverlay").classList.remove("show");
-      state.currentCall = null;
-    }
-
-    function resolveGuess(guess) {
-      if (!state.currentCall) return;
-
-      const call = state.currentCall;
-      costTime(1);
-
-      const correct = (guess === call.who);
-
-      if (correct) {
-        playBeep(660, 0.07);
-        toast("✅ Correct!");
-        changeQuality(+6);
-
-        if (guess === "mom" && !state.helped.mom) {
-          state.helped.mom = true; state.helpedCount++;
-          chat("Mom", "Good. Leave that jollof. I’m watching it now.");
-        } else if (guess === "aunt" && !state.helped.aunt) {
-          state.helped.aunt = true; state.helpedCount++;
-          chat("Aunt", "Finally. Let me handle this egusi before you disgrace us.");
-        } else if (guess === "uncle" && !state.helped.uncle) {
-          state.helped.uncle = true; state.helpedCount++;
-          chat("Uncle", "Okay. Give me. I can’t let lumps enter my lineage.");
-        } else if (guess === "dad" && !state.helped.dad) {
-          state.helped.dad = true;
-          changeSuspicion(-22);
-          chat("Dad", "I’ll talk to him. You focus. Breathe.");
-        } else if (guess === "not") {
-          changeSuspicion(-4);
-          chat("System", "Nice. Distraction avoided.");
-        } else {
-          changeSuspicion(-3);
-        }
-      } else {
-        playBeep(220, 0.10);
-        toast("❌ Wrong!");
-        const s = state.suspicion;
-        changeQuality(-(8 + s*0.04));
-        changeSuspicion(+12);
-
-        if (call.who === "mom") chat("Mom", "So you don’t know your own mother’s voice? Hmm.");
-        if (call.who === "aunt") chat("Aunt", "If you hang up on me again ehn—");
-        if (call.who === "uncle") chat("Uncle", "Ah. Small girl, you’re testing me.");
-        if (call.who === "dad") chat("Dad", "Answer properly. Investor is watching.");
-        if (call.who === "not") chat("Unknown", "Hello? You called me. Why you wasting my time?");
-      }
-
-      setHelpText();
-      closeCallModal();
-      stopRingingUI();
-      scheduleNextCall();
-      updateHUD();
-    }
-
-    function hangUp() {
-      if (!state.currentCall) return;
-      playBeep(200, 0.06);
-      toast("📞 Hung up!");
-      costTime(2);
-      changeQuality(-4);
-      changeSuspicion(+8);
-      chat("System", "You hung up. The kitchen gods are not impressed.");
-      closeCallModal();
-      stopRingingUI();
-      scheduleNextCall();
-      updateHUD();
-    }
-
-    function stir(dish) {
-      costTime(1);
-      state.heat[dish] = clamp(state.heat[dish] - 7, 0, 100);
-      const h = state.heat[dish];
-      if (h >= OPT_LOW && h <= OPT_HIGH) changeQuality(+1.2);
-      else changeQuality(+0.2);
-      playBeep(520, 0.05);
-      toast(`🥄 Stirred ${dish}!`);
-      updateHUD();
-    }
-
-    function lowerHeat(dish) {
-      costTime(1);
-      state.heat[dish] = clamp(state.heat[dish] - 14, 0, 100);
-      playBeep(420, 0.05);
-      toast(`⬇️ Heat down: ${dish}`);
-      updateHUD();
-    }
-
-    function endGame(win, msg) {
-      state.running = false;
-      stopRingtone();
-      clearInterval(loopId);
-
-      $("endTitle").textContent = win ? "✅ You Did It!" : "❌ Kitchen Disaster!";
-      $("endText").textContent = msg;
-      $("end").classList.add("show");
-    }
-
-    function maybeStoryBeats() {
-      if (state.t === 180) chat("Investor", "Send me a quick kitchen update.");
-      if (state.t === 120) chat("Investor", "I might arrive a bit early.");
-      if (state.t === 60)  chat("Investor", "I’m around the corner.");
-      if (state.t === 30)  chat("Investor", "30 seconds.");
-    }
-
-    /***********************
-     *  MAIN LOOP
-     ***********************/
-    let loopId = null;
-
-    function tick() {
-      if (!state.running) return;
-
-      state.tick++;
-      state.t = Math.max(0, state.t - 1);
-
-      // heat rises
-      const rise = heatRiseRate();
-      for (const dish of ["jollof","egusi","fufu"]) {
-        applyAutoHelp(dish);
-        let helpFactor = 1.0;
-        if (dish === "jollof" && state.helped.mom) helpFactor = 0.55;
-        if (dish === "egusi" && state.helped.aunt) helpFactor = 0.55;
-        if (dish === "fufu"  && state.helped.uncle) helpFactor = 0.60;
-        const wobble = rand(-0.25, 0.55);
-        state.heat[dish] = clamp(state.heat[dish] + (rise * helpFactor) + wobble, 0, 100);
-      }
-
-      // quality changes based on heat
-      qualityFromHeat();
-
-      // ringing pressure
-      if (state.ringing) {
-        changeSuspicion(+2.2);
-      } else {
-        // countdown to ring
-        state.ringTimer -= 1;
-        if (state.ringTimer <= 0 && !state.currentCall) {
-          state.currentCall = pickCall();
-          ringPhone();
-        }
-      }
-
-      maybeStoryBeats();
-
-      // lose conditions
-      if (state.suspicion >= 100) {
-        endGame(false, "🕵🏾 Suspicion hit 100. Investor arrived early and caught pure chaos.");
-        return;
-      }
-      if (state.quality <= 0) {
-        endGame(false, "🔥 Food ruined. Kitchen smoke everywhere.");
-        return;
-      }
-
-      // win/lose at time end
-      if (state.t <= 0) {
-        const win = (state.quality >= 60 && state.helpedCount >= 2);
-        endGame(win, `Quality ${Math.round(state.quality)}%. Dishes stabilized: ${state.helpedCount}/3.`);
-        return;
-      }
-
-      updateHUD();
-    }
-
-    /***********************
-     *  RESET / START
-     ***********************/
-    function resetGame() {
-      state.running = false;
-      state.t = GAME_SECONDS;
-      state.tick = 0;
-      state.quality = 50;
-      state.suspicion = 0;
-      state.helped = { mom: false, aunt: false, uncle: false, dad: false };
-      state.helpedCount = 0;
-      state.heat = { jollof: 45, egusi: 40, fufu: 35 };
-      state.ringing = false;
-      state.currentCall = null;
-      stopRingtone();
-
-      $("chatBody").innerHTML = "";
-      setUnread(0);
-
-      setHelpText();
-      scheduleNextCall();
-      updateHUD();
-
-      chat("Cousin", "Omo… who is cooking today? I smell drama.");
-      $("phoneBanner").classList.remove("show","ringing");
-      $("callOverlay").classList.remove("show");
-      $("end").classList.remove("show");
-    }
-
-    function startGame() {
-      ensureAudio();
-      if (state.audio.ctx.state === "suspended") state.audio.ctx.resume();
-
-      resetGame();
-      state.running = true;
-      $("howto").style.display = "none";
-      toast("🔥 Cooking started!");
-      toast("🎯 First goal: stabilize 2 dishes ASAP.");
-
-      clearInterval(loopId);
-      loopId = setInterval(tick, 1000);
-    }
-
-    /***********************
-     *  EVENTS
-     ***********************/
-    function setMuteText() {
-      $("muteBtn").textContent = state.soundOn ? "Sound: On" : "Sound: Off";
-      $("muteBtn2").textContent = state.soundOn ? "🔊" : "🔇";
-    }
-
-    $("startBtn").addEventListener("click", startGame);
-
-    $("muteBtn").addEventListener("click", () => {
-      state.soundOn = !state.soundOn;
-      if (!state.soundOn) stopRingtone();
-      setMuteText();
-      toast(state.soundOn ? "🔊 Sound on" : "🔇 Sound off");
+      return new Bubble(x, y, r, vx, vy, sp);
     });
-    $("muteBtn2").addEventListener("click", () => {
-      state.soundOn = !state.soundOn;
-      if (!state.soundOn) stopRingtone();
-      setMuteText();
-      toast(state.soundOn ? "🔊 Sound on" : "🔇 Sound off");
-    });
+  }
 
-    $("kitchen").addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-action]");
-      if (!btn || !state.running) return;
-      const action = btn.dataset.action;
-      const dish = btn.dataset.dish;
-      if (action === "stir") stir(dish);
-      if (action === "lower") lowerHeat(dish);
-    });
+  function beginWarmup() {
+    resizeCanvas();
+    mode = "warmup";
+    setHUDWarmup();
+    spawnBubblesWarmup();
+    lastTs = performance.now();
+    requestAnimationFrame(loop);
+  }
 
-    $("answerBtn").addEventListener("click", () => {
-      if (!state.running || !state.ringing || !state.currentCall) return;
-      changeSuspicion(-4);
-      stopRingtone();
-      openCallModal(state.currentCall);
-      toast("📞 Answered!");
-      updateHUD();
-    });
+  function beginRound() {
+    mode = "round";
+    timeLeft = ROUND_SECONDS;
+    targetsLeft = TARGET_COUNT;
+    setHUDRound();
+    spawnBubblesRound();
+  }
 
-    $("ignoreBtn").addEventListener("click", () => {
-      if (!state.running || !state.ringing) return;
-      stopRingtone();
-      toast("📵 Ignored call!");
-      changeSuspicion(+10);
-      changeQuality(-3);
-      chat("System", "You ignored a call. The group chat is watching.");
-      stopRingingUI();
-      state.currentCall = null;
-      scheduleNextCall();
-      updateHUD();
-    });
+  /***********************
+   *  Input
+   ***********************/
+  function getPointerPos(ev) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (ev.clientX - rect.left);
+    const y = (ev.clientY - rect.top);
+    return { x, y };
+  }
 
-    $("callOverlay").addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-guess]");
-      if (!btn) return;
-      resolveGuess(btn.dataset.guess);
-    });
+  function onPointerDown(ev) {
+    if (mode !== "warmup" && mode !== "round") return;
 
-    $("hangupBtn").addEventListener("click", hangUp);
+    const { x, y } = getPointerPos(ev);
 
-    $("chatHeader").addEventListener("click", toggleChat);
-    $("openChatBtn").addEventListener("click", openChat);
+    // Find topmost bubble hit: check from end to start (draw order)
+    let hitIndex = -1;
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      if (b.alive && !b.popping && b.hit(x, y)) {
+        hitIndex = i;
+        break;
+      }
+    }
 
-    $("restartBtn").addEventListener("click", () => {
-      $("end").classList.remove("show");
-      startGame();
-    });
+    if (hitIndex === -1) return; // no penalty for background taps
 
-    $("closeEndBtn").addEventListener("click", () => {
-      $("end").classList.remove("show");
-      $("howto").style.display = "flex";
-    });
+    const b = bubbles[hitIndex];
 
-    // Init
-    setMuteText();
-    resetGame();
-  </script>
+    if (mode === "warmup") {
+      b.pop();
+      hudSubtitle.textContent = "Good. Now focus.";
+      setTimeout(() => {
+        beginRound();
+      }, 650);
+      return;
+    }
 
-  <div class="toasts" id="toasts"></div>
+    // Round logic
+    if (b.spice.key === TARGET_KEY) {
+      b.pop();
+      targetsLeft = Math.max(0, targetsLeft - 1);
+      setHUDRound();
+
+      if (targetsLeft <= 0) {
+        // win after pop animation has time to feel satisfying
+        setTimeout(() => showEnd(true), 550);
+      }
+    } else {
+      // wrong bubble: small penalty, subtle flash
+      flashWrong();
+
+      // tiny time penalty (keeps pressure real)
+      timeLeft = Math.max(0, timeLeft - 1);
+      setHUDRound();
+
+      // optional: pop wrong too? (I recommend NO for fairness; keep it alive)
+      // b.pop();
+    }
+  }
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+
+  /***********************
+   *  Loop
+   ***********************/
+  function loop(ts) {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+
+    const dt = Math.min(0.033, (ts - lastTs) / 1000);
+    lastTs = ts;
+
+    // Update
+    if (mode === "round") {
+      // Countdown
+      // We tick timer smoothly so it feels “alive”, then display as whole seconds
+      timeLeft -= dt;
+      if (timeLeft < 0) timeLeft = 0;
+
+      // Update HUD as integer seconds
+      const sec = Math.ceil(timeLeft);
+      timeVal.textContent = `${sec}s`;
+      leftVal.textContent = String(targetsLeft);
+
+      // If time up and targets remain
+      if (timeLeft <= 0 && targetsLeft > 0) {
+        showEnd(false);
+      }
+    }
+
+    const speedMul = (mode === "round") ? SPEED_MUL_ROUND1 : 0.55;
+
+    for (const b of bubbles) {
+      b.update(dt, w, h, speedMul);
+    }
+
+    // Draw
+    ctx.clearRect(0, 0, w, h);
+
+    // Background is white (body), but if you want a tiny warmth:
+    // ctx.fillStyle = "#ffffff";
+    // ctx.fillRect(0, 0, w, h);
+
+    // Draw bubbles
+    for (const b of bubbles) {
+      b.draw(ctx);
+    }
+
+    // If game running, keep animating
+    if (mode === "warmup" || mode === "round") {
+      requestAnimationFrame(loop);
+    }
+  }
+
+  /***********************
+   *  Boot
+   ***********************/
+  resizeCanvas();
+  // startOverlay is shown by default
+})();
+</script>
 </body>
 </html>
