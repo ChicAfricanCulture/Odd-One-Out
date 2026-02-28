@@ -1,458 +1,703 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Mix-Up: The Investor is Coming</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #2c3e50;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* kills horizontal scroll/clip */
-}.game-container {
-    max-width: 100%; /* change from 450px to allow full width on phone */
-    width: 100%;
-    margin: 0 auto;
-    background: #f5f5f5;
-    border-radius: 0; /* remove rounding on mobile if it clips */
-    padding: 15px; /* tighter padding */
-    box-shadow: none; /* optional: shadows can cause perceived overflow */
-}
-        .status-bar {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .timer {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 10px;
-        }
-        .quality-meter {
-            height: 20px;
-            background: #ecf0f1;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .quality-fill {
-            height: 100%;
-            width: 50%;
-            background: #27ae60;
-            transition: width 0.3s;
-        }
-        .quality-text {
-            text-align: center;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-        .kitchen {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .pots {
-            display: flex;
-            justify-content: space-around;
-            margin: 15px 0;
-        }
-        .pot {
-            text-align: center;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 10px;
-            width: 30%;
-        }
-        .pot.need-help {
-            border: 2px solid #e74c3c;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
-            100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
-        }
-        .pot-icon img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        .contacts {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        .contact {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .contact:hover {
-            background: #e3f2fd;
-        }
-        .contact:last-child { border-bottom: none; }
-        .contact-name { font-weight: bold; margin-bottom: 5px; }
-        .contact-preview { font-size: 12px; color: #7f8c8d; }
-        .message-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            max-width: 300px;
-            display: none;
-            z-index: 1000;
-        }
-        .message-popup.show { display: block; }
-        .message-text { margin-bottom: 20px; line-height: 1.5; }
-        .message-buttons { display: flex; gap: 10px; justify-content: center; }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-primary { background: #27ae60; color: white; }
-        .btn-secondary { background: #e74c3c; color: white; }
-        .btn-small { background: #3498db; color: white; padding: 5px 15px; font-size: 14px; }
-        .group-chat {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 13px;
-        }
-        .chat-message {
-            margin-bottom: 10px;
-            padding: 8px;
-            background: #f0f0f0;
-            border-radius: 10px;
-        }
-        .chat-sender { font-weight: bold; color: #2c3e50; margin-bottom: 3px; }
-        .chat-text { color: #555; }
-        .new-message { animation: highlight 1s; }
-        @keyframes highlight {
-            0% { background: #fffacd; }
-            100% { background: #f0f0f0; }
-        }
-        .investor-text {
-            background: #3498db;
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-style: italic;
-        }
-        /* How-to-play full screen */
-       #how-to-play {
-    position: fixed;
-    inset: 0;
-    background: #1a2634;
-    color: #f5f5f5;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 15px; /* reduced for small screens */
-    box-sizing: border-box;
-    overflow-y: auto; /* allow scroll if text too long */
-    z-index: 2000;
-}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Mix-Up: The Investor is Coming</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      background: #2c3e50;
+      color: #333;
+    }
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* GAME WRAP */
+    .game-container {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+      background: #f5f5f5;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+      display: none; /* hidden until Start */
+    }
+
+    /* STATUS */
+    .status-bar {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+    }
+    .timer {
+      font-size: 20px;
+      font-weight: bold;
+      color: #e74c3c;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+    .quality-meter {
+      height: 18px;
+      background: #ecf0f1;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 8px;
+    }
+    .quality-fill {
+      height: 100%;
+      width: 50%;
+      background: #27ae60;
+      transition: width 0.2s ease;
+    }
+    .quality-text {
+      text-align: center;
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+
+    /* INVESTOR TEXT */
+    .investor-text {
+      background: #3498db;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin: 0 0 14px;
+      font-style: italic;
+      display: none;
+    }
+
+    /* KITCHEN */
+    .kitchen {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .kitchen h3 { margin: 0 0 10px; }
+    .pots {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+    .pot {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 12px;
+    }
+    .pot.need-help {
+      border: 2px solid #e74c3c;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.40); }
+      70% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+      100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+    }
+    .pot-icon {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .pot-icon img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #ddd;
+    }
+    .pot small { color: #7f8c8d; }
+
+    /* CONTACTS */
+    h3 { margin: 12px 0 10px; }
+    .contacts {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .contact {
+      padding: 14px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .contact:hover { background: #e3f2fd; }
+    .contact:last-child { border-bottom: none; }
+    .contact-name { font-weight: bold; margin-bottom: 4px; }
+    .contact-preview { font-size: 12px; color: #7f8c8d; }
+
+    /* GROUP CHAT */
+    .group-chat {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 13px;
+    }
+    .group-chat h4 { margin: 0 0 10px; }
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      background: #f0f0f0;
+      border-radius: 12px;
+    }
+    .chat-sender { font-weight: bold; color: #2c3e50; margin-bottom: 3px; }
+    .chat-text { color: #555; }
+    .new-message { animation: highlight 1s; }
+    @keyframes highlight {
+      0% { background: #fffacd; }
+      100% { background: #f0f0f0; }
+    }
+
+    /* POPUP (voicemail) */
+    .message-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,0.45);
+      z-index: 3000;
+    }
+    .message-popup.show { display: flex; }
+    .popup-card {
+      width: min(380px, 100%);
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    }
+    .message-text { margin-bottom: 14px; line-height: 1.45; }
+    .message-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary { background: #27ae60; color: #fff; }
+    .btn-secondary { background: #e74c3c; color: #fff; }
+    .btn-small { background: #3498db; color: #fff; padding: 8px 12px; font-size: 14px; }
+
+    /* HOW TO PLAY overlay (fixed + scrollable + clickable) */
+    #how-to-play {
+      position: fixed;
+      inset: 0;
+      background: #1a2634;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      z-index: 5000;
+      pointer-events: auto;
+    }
+    .how-inner {
+      width: min(680px, 100%);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      overflow: auto; /* this is the key fix */
+      padding-bottom: 12px;
+    }
+    .how-title {
+      font-size: clamp(1.6rem, 4.8vw, 2.2rem);
+      margin: 0;
+      color: #e67e22;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .how-body {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .how-body ul {
+      margin: 12px 0 0;
+      padding-left: 20px;
+      list-style-type: square;
+    }
+    .how-footer {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 4px;
+    }
+    #start-game-btn {
+      font-size: 1.15rem;
+      padding: 14px 22px;
+      border-radius: 14px;
+    }
+
+    @media (max-width: 380px) {
+      .pots { gap: 8px; }
+      .pot-icon img { width: 56px; height: 56px; }
+      .timer { font-size: 18px; }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- HOW TO PLAY OVERLAY -->
-<div id="how-to-play">
-    <h1 style="font-size: 2.4em; margin: 0 0 25px; color: #e67e22;">Contact Mix-Up:<br>The Investor is Coming! 🍲📞</h1>
-    <div style="max-width: 480px; font-size: 1.1em; line-height: 1.6;">
-        <p>Your investor (Mr. Okafor) arrives in 2 hours expecting a proper Naija spread — but your phone contacts are completely scrambled.</p>
-        <p><strong>Goal:</strong> Quickly figure out who’s really who so the right family members can help rescue your Jollof, Egusi, and Fufu before everything burns or quality tanks.</p>
-        <ul style="text-align: left; margin: 25px auto; padding-left: 20px; max-width: 420px; list-style-type: square;">
-            <li>Tap any contact → listen to their voicemail</li>
-            <li>Decide: Is this actually your Mom / Aunty / Uncle… or a restaurant / wrong number?</li>
-            <li>✅ Correct guess → quality improves + family member helps dish</li>
-            <li>❌ Wrong guess → quality drops (softer early on) + group chat gets suspicious</li>
-            <li>Watch the chat — missed calls and hang-ups make them connect dots</li>
-        </ul>
-        <p style="font-weight: bold; color: #e74c3c; margin: 20px 0;">Don’t burn the food. Don’t make Aunty angry. Good luck!</p>
-    </div>
-    <button id="start-game-btn" class="btn btn-primary" style="margin-top: 30px; font-size: 1.5em; padding: 16px 50px;">
-        Start Cooking – No Time to Waste! 🔥
-    </button>
-</div>
+  <!-- HOW TO PLAY OVERLAY -->
+  <div id="how-to-play" role="dialog" aria-modal="true">
+    <div class="how-inner">
+      <h1 class="how-title">Contact Mix-Up:<br/>The Investor is Coming! 🍲📞</h1>
 
-<div class="game-container" id="game-container">
-    <!-- STATUS BAR -->
+      <div class="how-body">
+        <p>
+          Your investor (Mr. Okafor) arrives soon expecting a proper Naija spread —
+          but your phone contacts are completely scrambled.
+        </p>
+        <p>
+          <strong>Goal:</strong> Identify <strong>family vs not-family</strong> fast so the right helpers can
+          rescue your Jollof, Egusi, and Fufu before quality tanks.
+        </p>
+
+        <ul>
+          <li>Tap any contact → listen to voicemail</li>
+          <li>✅ <strong>Save as Family</strong> if it’s family</li>
+          <li>❌ <strong>Not Family</strong> if it’s restaurant / wrong number</li>
+          <li>Correct choice boosts quality; key family can help a dish</li>
+          <li>Wrong choice drops quality + group chat gets suspicious</li>
+          <li><strong>Hanging up</strong> wastes time <em>and</em> reduces quality</li>
+        </ul>
+
+        <p style="font-weight:bold; color:#e74c3c; margin-top: 14px;">
+          Don’t burn the food. Don’t make Aunty angry. Good luck!
+        </p>
+
+        <p style="opacity:0.9; margin-top: 12px;">
+          <strong>Image fix:</strong> This game expects your files here:
+          <code>images/jollof.jpg</code>, <code>images/egusi.jpg</code>, <code>images/fufu.jpg</code>.
+        </p>
+      </div>
+
+      <div class="how-footer">
+        <button id="start-game-btn" class="btn btn-primary" type="button">
+          Start Cooking – No Time to Waste! 🔥
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="game-container" id="game-container">
     <div class="status-bar">
-        <div class="timer">⏰ Investor arrives in: <span id="timer">2:00</span></div>
-        <div class="quality-meter">
-            <div class="quality-fill" id="quality-fill" style="width: 50%;"></div>
-        </div>
-        <div class="quality-text">Dish Quality: <span id="quality">50</span>%</div>
+      <div class="timer">⏰ Investor arrives in: <span id="timer">6:00</span></div>
+      <div class="quality-meter">
+        <div class="quality-fill" id="quality-fill" style="width:50%"></div>
+      </div>
+      <div class="quality-text">Dish Quality: <span id="quality">50</span>%</div>
     </div>
-    
-    <!-- INVESTOR TEXT -->
-    <div class="investor-text" id="investor-text" style="display: none;"></div>
-    
-    <!-- KITCHEN -->
+
+    <div class="investor-text" id="investor-text"></div>
+
     <div class="kitchen">
-        <h3>🔥 Your Kitchen</h3>
-        <div class="pots">
-            <div class="pot need-help" id="pot-jollof">
-                <div class="pot-icon"><img src="jollof.jpg" alt="Jollof Rice"></div>
-                <div>Jollof Rice</div>
-                <small>Needs Mom</small>
-            </div>
-            <div class="pot need-help" id="pot-egusi">
-                <div class="pot-icon"><img src="egusi.jpg" alt="Egusi Soup"></div>
-                <div>Egusi Soup</div>
-                <small>Needs Aunt</small>
-            </div>
-            <div class="pot need-help" id="pot-fufu">
-                <div class="pot-icon"><img src="fufu.jpg" alt="Fufu"></div>
-                <div>Fufu</div>
-                <small>Needs Uncle</small>
-            </div>
+      <h3>🔥 Your Kitchen</h3>
+      <div class="pots">
+        <div class="pot need-help" id="pot-jollof">
+          <div class="pot-icon"><img id="img-jollof" alt="Jollof Rice"></div>
+          <div><strong>Jollof Rice</strong></div>
+          <small>Needs Mom</small>
         </div>
+
+        <div class="pot need-help" id="pot-egusi">
+          <div class="pot-icon"><img id="img-egusi" alt="Egusi Soup"></div>
+          <div><strong>Egusi Soup</strong></div>
+          <small>Needs Aunt</small>
+        </div>
+
+        <div class="pot need-help" id="pot-fufu">
+          <div class="pot-icon"><img id="img-fufu" alt="Fufu"></div>
+          <div><strong>Fufu</strong></div>
+          <small>Needs Uncle</small>
+        </div>
+      </div>
     </div>
-    
-    <!-- CONTACTS -->
+
     <h3>📱 Mixed Up Contacts</h3>
     <div class="contacts" id="contacts-list"></div>
-    
-    <!-- GROUP CHAT -->
+
     <div class="group-chat" id="group-chat">
-        <h4>💬 Omo Naija Family</h4>
-        <div id="chat-messages">
-            <div class="chat-message">
-                <div class="chat-sender">Cousin:</div>
-                <div class="chat-text">Anyone heard from [You] today?</div>
-            </div>
+      <h4>💬 Omo Naija Family</h4>
+      <div id="chat-messages">
+        <div class="chat-message">
+          <div class="chat-sender">Cousin:</div>
+          <div class="chat-text">Anyone heard from [You] today?</div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- MESSAGE POPUP -->
-<div class="message-popup" id="message-popup">
-    <div class="message-text" id="message-text">Voicemail plays...</div>
-    <div class="message-buttons">
-        <button class="btn btn-primary" id="btn-fix">✅ This is [Person]</button>
-        <button class="btn btn-secondary" id="btn-wrong">❌ Wrong Number</button>
-    </div>
-    <div style="text-align: center; margin-top: 10px;">
-        <button class="btn-small" id="btn-hangup">📞 Hang Up (Do Nothing)</button>
-    </div>
-</div>
+  <!-- VOICEMAIL POPUP -->
+  <div class="message-popup" id="message-popup" role="dialog" aria-modal="true">
+    <div class="popup-card">
+      <div class="message-text" id="message-text">Voicemail plays...</div>
 
-<script>
-    let gameState = {
-        timer: 120,
-        quality: 50,
-        mistakes: 0,
-        contacts: [
-            { displayName: "❤️ Mom", realIdentity: "restaurant", voicemail: "Thank you for calling Jollof Palace, home of the best jollof in the city! We're open 11am to 10pm.", type: "restaurant", knownAs: null },
-            { displayName: "👨 Dad", realIdentity: "uncle", voicemail: "My person! This is Uncle! You caught me at a bad time, I'm eating. Leave message!", type: "family", knownAs: null },
-            { displayName: "🌸 Aunt", realIdentity: "mom", voicemail: "Hello? ... Oh, it's you! Why you no call me yesterday? I made your favorite. Anyway, leave message. Or better, come eat. Love you.", type: "family", knownAs: null },
-            { displayName: "👴 Uncle", realIdentity: "aunt", voicemail: "Eh! Who this? ... Oh, voicemail. This is Aunty. If you're my real family, leave message. If you're selling something, God punish you.", type: "family", knownAs: null },
-            { displayName: "⭐ Cousin", realIdentity: "cousin", voicemail: "Yo, it's your favorite cousin! Leave a message, I got you. Unless you're asking for money. Then I'm busy.", type: "family", knownAs: null },
-            { displayName: "🍽️ Jollof Palace", realIdentity: "restaurant", voicemail: "Jollof Palace! Today's special: jollof rice with grilled chicken.", type: "restaurant", knownAs: null },
-            { displayName: "🍽️ Mama Put", realIdentity: "restaurant", voicemail: "Mama Put! Where the food is always ready! We open at noon.", type: "restaurant", knownAs: null },
-            { displayName: "🍽️ Buka Kitchen", realIdentity: "dad", voicemail: "This is Dad. If it's important, I'll call back. If it's your mother, she's in the kitchen.", type: "family", knownAs: null },
-            { displayName: "🍕 Pizza Place", realIdentity: "wrong", voicemail: "Domino's Pizza! Would you like to place an order? Call back for delivery!", type: "wrong", knownAs: null },
-            { displayName: "💼 Kehinde (Work)", realIdentity: "wrong", voicemail: "Hey, it's Kehinde from work! Haven't heard from you in months! Call me back!", type: "wrong", knownAs: null }
-        ],
-        familyHelps: {
-            mom:    { dish: 'jollof', boostGiven: false },
-            aunt:   { dish: 'egusi',  boostGiven: false },
-            uncle:  { dish: 'fufu',   boostGiven: false }
-        },
-        callsMade: 0,
-        currentCallIndex: -1
+      <div class="message-buttons">
+        <button class="btn btn-primary" id="btn-fix" type="button">✅ Save as Family</button>
+        <button class="btn btn-secondary" id="btn-wrong" type="button">❌ Not Family</button>
+      </div>
+
+      <div style="text-align:center; margin-top: 10px;">
+        <button class="btn btn-small" id="btn-hangup" type="button">📞 Hang Up (Do Nothing)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Image paths based on your repo structure:
+    // images/egusi.jpg, images/fufu.jpg, images/jollof.jpg
+    const IMAGE_PATHS = {
+      jollof: "images/jollof.jpg",
+      egusi:  "images/egusi.jpg",
+      fufu:   "images/fufu.jpg",
     };
 
-    function updateTimer() {
-        if (gameState.timer <= 0) {
-            document.getElementById('timer').innerText = "0:00";
-            alert("INVESTOR ARRIVES! Your food is not ready...");
-            return;
-        }
-        gameState.timer -= 1;
-        let minutes = Math.floor(gameState.timer / 60);
-        let seconds = gameState.timer % 60;
-        document.getElementById('timer').innerText = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    const gameState = {
+      running: false,
+      timerSeconds: 6 * 60, // 6 minutes
+      quality: 50,
+      mistakes: 0,
+      currentCallId: null,
+      intervalId: null,
 
-        if (gameState.timer === 105) showInvestorText("Mr. Okafor: Traffic is light. I might be early!");
-        if (gameState.timer === 75) showInvestorText("Mr. Okafor: I saw your mother at the market. She didn't mention you were cooking today...");
-        if (gameState.timer === 45) showInvestorText("Mr. Okafor: Your father just called me. He asked how your cooking was coming along. I didn't know what to say.");
-        if (gameState.timer === 15) showInvestorText("Mr. Okafor: I'm 15 minutes out. Hope everything is ready!");
+      contacts: [
+        { id: "c1",  displayName: "❤️ Mom",            realIdentity: "restaurant", voicemail: "Thank you for calling Jollof Palace, home of the best jollof in the city! We're open 11am to 10pm.", type: "restaurant", knownAs: null },
+        { id: "c2",  displayName: "👨 Dad",            realIdentity: "uncle",      voicemail: "My person! This is Uncle! You caught me at a bad time, I'm eating. Leave message!", type: "family", knownAs: null },
+        { id: "c3",  displayName: "🌸 Aunt",           realIdentity: "mom",        voicemail: "Hello? ... Oh, it's you! Why you no call me yesterday? I made your favorite. Anyway, leave message. Or better, come eat. Love you.", type: "family", knownAs: null },
+        { id: "c4",  displayName: "👴 Uncle",          realIdentity: "aunt",       voicemail: "Eh! Who this? ... Oh, voicemail. This is Aunty. If you're my real family, leave message. If you're selling something, God punish you.", type: "family", knownAs: null },
+        { id: "c5",  displayName: "⭐ Cousin",         realIdentity: "cousin",     voicemail: "Yo, it's your favorite cousin! Leave a message, I got you. Unless you're asking for money. Then I'm busy.", type: "family", knownAs: null },
+        { id: "c6",  displayName: "🍽️ Jollof Palace", realIdentity: "restaurant", voicemail: "Jollof Palace! Today's special: jollof rice with grilled chicken.", type: "restaurant", knownAs: null },
+        { id: "c7",  displayName: "🍽️ Mama Put",      realIdentity: "restaurant", voicemail: "Mama Put! Where the food is always ready! We open at noon.", type: "restaurant", knownAs: null },
+        { id: "c8",  displayName: "🍽️ Buka Kitchen",  realIdentity: "dad",        voicemail: "This is Dad. If it's important, I'll call back. If it's your mother, she's in the kitchen.", type: "family", knownAs: null },
+        { id: "c9",  displayName: "🍕 Pizza Place",    realIdentity: "wrong",      voicemail: "Domino's Pizza! Would you like to place an order? Call back for delivery!", type: "wrong", knownAs: null },
+        { id: "c10", displayName: "💼 Kehinde (Work)", realIdentity: "wrong",      voicemail: "Hey, it's Kehinde from work! Haven't heard from you in months! Call me back!", type: "wrong", knownAs: null }
+      ],
+
+      familyHelps: {
+        mom:   { dish: "jollof", boostGiven: false },
+        aunt:  { dish: "egusi",  boostGiven: false },
+        uncle: { dish: "fufu",   boostGiven: false }
+      }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    function formatTime(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m}:${s < 10 ? "0" : ""}${s}`;
+    }
+
+    function setQuality(newQuality) {
+      gameState.quality = clamp(newQuality, 0, 100);
+      $("quality").innerText = gameState.quality;
+      $("quality-fill").style.width = gameState.quality + "%";
     }
 
     function showInvestorText(message) {
-        let textBox = document.getElementById('investor-text');
-        textBox.innerText = "📱 " + message;
-        textBox.style.display = 'block';
-        setTimeout(() => { textBox.style.display = 'none'; }, 8000);
+      const box = $("investor-text");
+      box.innerText = "📱 " + message;
+      box.style.display = "block";
+      clearTimeout(showInvestorText._t);
+      showInvestorText._t = setTimeout(() => {
+        box.style.display = "none";
+      }, 6500);
     }
-
-    function renderContacts() {
-        let html = '';
-        let sorted = [...gameState.contacts].sort((a,b) => {
-            if (a.knownAs && !b.knownAs) return -1;
-            if (!a.knownAs && b.knownAs) return 1;
-            return 0;
-        });
-        for (let i = 0; i < sorted.length; i++) {
-            let c = sorted[i];
-            let origIndex = gameState.contacts.indexOf(c);
-            let name = c.knownAs ? `✅ ${c.knownAs}` : c.displayName;
-            html += `<div class="contact" onclick="callContact(${origIndex})">
-                <div class="contact-name">${name}</div>
-                <div class="contact-preview">Click to call...</div>
-            </div>`;
-        }
-        document.getElementById('contacts-list').innerHTML = html;
-    }
-
-    function callContact(index) {
-        gameState.currentCallIndex = index;
-        let contact = gameState.contacts[index];
-        document.getElementById('message-text').innerText = "📞 Voicemail: " + contact.voicemail;
-        document.getElementById('message-popup').classList.add('show');
-    }
-
-    document.getElementById('btn-fix').addEventListener('click', () => {
-        let index = gameState.currentCallIndex;
-        let contact = gameState.contacts[index];
-        let message = '';
-        let qualityChange = 0;
-
-        if (contact.type === 'family') {
-            message = "✅ Contact saved! You now know who this is.";
-            qualityChange = 12;
-
-            let realIdLower = contact.realIdentity.toLowerCase();
-            if (gameState.familyHelps[realIdLower] && !gameState.familyHelps[realIdLower].boostGiven) {
-                let dish = gameState.familyHelps[realIdLower].dish;
-                qualityChange += 18;
-                gameState.familyHelps[realIdLower].boostGiven = true;
-                message += ` ${realIdLower.charAt(0).toUpperCase() + realIdLower.slice(1)} is helping with ${dish}!`;
-
-                let potId = 'pot-' + dish;
-                document.getElementById(potId).classList.remove('need-help');
-                document.getElementById(potId).querySelector('small').innerText = 'Helped by ' + realIdLower.charAt(0).toUpperCase() + realIdLower.slice(1);
-            }
-
-            if (!contact.knownAs) {
-                contact.knownAs = contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1);
-                renderContacts();
-            }
-        } else {
-            gameState.mistakes++;
-            qualityChange = (gameState.mistakes <= 3) ? -6 : -15;
-            message = "❌ That's not family! Wasted time.";
-        }
-
-        gameState.quality += qualityChange;
-        gameState.quality = Math.max(0, Math.min(100, gameState.quality));
-        document.getElementById('quality').innerText = gameState.quality;
-        document.getElementById('quality-fill').style.width = gameState.quality + '%';
-
-        addGroupChatMessage('System', message);
-        document.getElementById('message-popup').classList.remove('show');
-        checkGameStatus();
-    });
-
-    document.getElementById('btn-wrong').addEventListener('click', () => {
-        let index = gameState.currentCallIndex;
-        let contact = gameState.contacts[index];
-        let message = '';
-        let qualityChange = 0;
-
-        if (contact.type === 'restaurant' || contact.type === 'wrong') {
-            message = "✅ Good call – that's not family.";
-            qualityChange = 5;
-        } else {
-            gameState.mistakes++;
-            qualityChange = (gameState.mistakes <= 3) ? -8 : -20;
-            message = "❌ That WAS your " + contact.realIdentity + "! Hung up on family!";
-            addGroupChatMessage(contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1), "Did you just call and hang up?!");
-        }
-
-        gameState.quality += qualityChange;
-        gameState.quality = Math.max(0, Math.min(100, gameState.quality));
-        document.getElementById('quality').innerText = gameState.quality;
-        document.getElementById('quality-fill').style.width = gameState.quality + '%';
-
-        addGroupChatMessage('System', message);
-        document.getElementById('message-popup').classList.remove('show');
-        checkGameStatus();
-    });
-
-    document.getElementById('btn-hangup').addEventListener('click', () => {
-        addGroupChatMessage('System', '📞 Hung up without leaving message.');
-        gameState.timer -= 2;
-        if (gameState.timer < 0) gameState.timer = 0;
-        document.getElementById('message-popup').classList.remove('show');
-    });
 
     function addGroupChatMessage(sender, message) {
-        let chatDiv = document.getElementById('chat-messages');
-        let newMsg = document.createElement('div');
-        newMsg.className = 'chat-message new-message';
-        newMsg.innerHTML = `<div class="chat-sender">${sender}:</div><div class="chat-text">${message}</div>`;
-        chatDiv.appendChild(newMsg);
-        let container = document.getElementById('group-chat');
-        container.scrollTop = container.scrollHeight;
-        setTimeout(() => newMsg.classList.remove('new-message'), 1000);
+      const chatDiv = $("chat-messages");
+      const newMsg = document.createElement("div");
+      newMsg.className = "chat-message new-message";
+      newMsg.innerHTML = `<div class="chat-sender">${sender}:</div><div class="chat-text">${message}</div>`;
+      chatDiv.appendChild(newMsg);
+
+      const container = $("group-chat");
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => newMsg.classList.remove("new-message"), 900);
     }
 
     function checkGameStatus() {
-        if (gameState.quality <= 20) alert("⚠️ Food almost ruined! Investor soon!");
-        if (gameState.quality <= 0) alert("❌ GAME OVER - Food burnt. Family disappointed.");
-        if (gameState.quality >= 80) addGroupChatMessage('Mom', 'Something tells me [You] is cooking good today...');
+      if (gameState.quality <= 0) {
+        endGame("❌ GAME OVER - Food ruined. Family disappointed.");
+        return;
+      }
+      if (gameState.quality <= 20) {
+        addGroupChatMessage("System", "⚠️ Food almost ruined! Move fast!");
+      }
     }
 
-    // START GAME
-    document.getElementById('start-game-btn').addEventListener('click', () => {
-        document.getElementById('how-to-play').style.display = 'none';
-        document.getElementById('game-container').style.display = 'block';
-        renderContacts();
-        setInterval(updateTimer, 3000);
-        // Delayed chat messages
-        setTimeout(() => addGroupChatMessage('Aunt', 'My phone acting up. Weird calls.'), 10000);
-        setTimeout(() => addGroupChatMessage('Uncle', 'Same! Got call from "Jollof Palace". Hung up!'), 20000);
-        setTimeout(() => addGroupChatMessage('Mom', 'Wait... [You] called but hung up. Cooking maybe?'), 35000);
-        setTimeout(() => addGroupChatMessage('Dad', 'Mr. Okafor called. Going to [You]’s place. Nobody told me.'), 50000);
-        setTimeout(() => {
-            addGroupChatMessage('Mom', 'WHAT?! Nobody tells me anything!');
-            addGroupChatMessage('Aunt', 'Eh! [You] better call me NOW!');
-        }, 55000);
+    function endGame(message) {
+      gameState.running = false;
+      if (gameState.intervalId) clearInterval(gameState.intervalId);
+      gameState.intervalId = null;
+      alert(message);
+    }
+
+    function updateTimer() {
+      if (!gameState.running) return;
+
+      if (gameState.timerSeconds <= 0) {
+        $("timer").innerText = "0:00";
+        endGame("INVESTOR ARRIVES! Your food is not ready...");
+        return;
+      }
+
+      gameState.timerSeconds -= 1;
+      $("timer").innerText = formatTime(gameState.timerSeconds);
+
+      // Spread these across a 6-minute game:
+      if (gameState.timerSeconds === 5 * 60 + 15) showInvestorText("Mr. Okafor: Traffic is light. I might be early!");
+      if (gameState.timerSeconds === 3 * 60 + 45) showInvestorText("Mr. Okafor: I saw your mother at the market. She didn't mention you were cooking today...");
+      if (gameState.timerSeconds === 2 * 60 + 15) showInvestorText("Mr. Okafor: Your father just called me. He asked how your cooking was coming along. I didn't know what to say.");
+      if (gameState.timerSeconds === 45)          showInvestorText("Mr. Okafor: I'm 45 seconds out. Hope everything is ready!");
+    }
+
+    function getContactById(id) {
+      return gameState.contacts.find(c => c.id === id) || null;
+    }
+
+    function renderContacts() {
+      const list = $("contacts-list");
+      list.innerHTML = "";
+
+      const sorted = [...gameState.contacts].sort((a, b) => {
+        if (a.knownAs && !b.knownAs) return -1;
+        if (!a.knownAs && b.knownAs) return 1;
+        return 0;
+      });
+
+      for (const c of sorted) {
+        const item = document.createElement("div");
+        item.className = "contact";
+        item.dataset.contactId = c.id;
+
+        const name = c.knownAs ? `✅ ${c.knownAs}` : c.displayName;
+        item.innerHTML = `
+          <div class="contact-name">${name}</div>
+          <div class="contact-preview">Tap to call...</div>
+        `;
+        list.appendChild(item);
+      }
+    }
+
+    function openPopup(contactId) {
+      const contact = getContactById(contactId);
+      if (!contact) return;
+
+      gameState.currentCallId = contactId;
+      $("message-text").innerText = "📞 Voicemail: " + contact.voicemail;
+
+      // generic labels (your preference)
+      $("btn-fix").innerText = "✅ Save as Family";
+      $("btn-wrong").innerText = "❌ Not Family";
+
+      $("message-popup").classList.add("show");
+    }
+
+    function closePopup() {
+      $("message-popup").classList.remove("show");
+      gameState.currentCallId = null;
+    }
+
+    function applyFamilyHelpIfAny(realIdentityLower) {
+      const help = gameState.familyHelps[realIdentityLower];
+      if (!help || help.boostGiven) return { helped: false, dish: null };
+
+      help.boostGiven = true;
+      const dish = help.dish;
+
+      const pot = $("pot-" + dish);
+      if (pot) {
+        pot.classList.remove("need-help");
+        const small = pot.querySelector("small");
+        if (small) small.innerText = "Helped by " + realIdentityLower.charAt(0).toUpperCase() + realIdentityLower.slice(1);
+      }
+      return { helped: true, dish };
+    }
+
+    function onSaveAsFamily() {
+      const contact = getContactById(gameState.currentCallId);
+      if (!contact) return;
+
+      let qualityDelta = 0;
+      let msg = "";
+
+      if (contact.type === "family") {
+        // Correct: family
+        msg = "✅ Contact saved! You now know this is family.";
+        qualityDelta += 12;
+
+        // mark known
+        if (!contact.knownAs) {
+          const label = contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1);
+          contact.knownAs = label;
+          renderContacts();
+        }
+
+        // dish help for mom/aunt/uncle
+        const idLower = String(contact.realIdentity).toLowerCase();
+        const helpResult = applyFamilyHelpIfAny(idLower);
+        if (helpResult.helped) {
+          qualityDelta += 18;
+          msg += ` ${contact.knownAs} is helping with ${helpResult.dish}!`;
+        }
+      } else {
+        // Wrong: not family
+        gameState.mistakes++;
+        qualityDelta -= (gameState.mistakes <= 3) ? 6 : 15;
+        msg = "❌ That's not family! Wasted time.";
+      }
+
+      setQuality(gameState.quality + qualityDelta);
+      addGroupChatMessage("System", msg);
+
+      closePopup();
+      checkGameStatus();
+    }
+
+    function onNotFamily() {
+      const contact = getContactById(gameState.currentCallId);
+      if (!contact) return;
+
+      let qualityDelta = 0;
+      let msg = "";
+
+      if (contact.type === "restaurant" || contact.type === "wrong") {
+        // Correct: not family
+        msg = "✅ Good call — that's not family.";
+        qualityDelta += 5;
+      } else {
+        // Wrong: it was family
+        gameState.mistakes++;
+        qualityDelta -= (gameState.mistakes <= 3) ? 8 : 20;
+        msg = `❌ That WAS family! Hung up on your ${contact.realIdentity}.`;
+
+        const sender = contact.realIdentity.charAt(0).toUpperCase() + contact.realIdentity.slice(1);
+        addGroupChatMessage(sender, "Did you just call and insult me with hang up??");
+      }
+
+      setQuality(gameState.quality + qualityDelta);
+      addGroupChatMessage("System", msg);
+
+      closePopup();
+      checkGameStatus();
+    }
+
+    function onHangUp() {
+      // Penalize hang-up (you asked for this)
+      addGroupChatMessage("System", "📞 Hung up without leaving message.");
+      gameState.timerSeconds = Math.max(0, gameState.timerSeconds - 2);
+      $("timer").innerText = formatTime(gameState.timerSeconds);
+
+      setQuality(gameState.quality - 2);
+
+      closePopup();
+      checkGameStatus();
+    }
+
+    function loadImages() {
+      const imgJ = $("img-jollof");
+      const imgE = $("img-egusi");
+      const imgF = $("img-fufu");
+
+      imgJ.src = IMAGE_PATHS.jollof;
+      imgE.src = IMAGE_PATHS.egusi;
+      imgF.src = IMAGE_PATHS.fufu;
+
+      // If the path is wrong, show a visible hint instead of silently failing
+      const onErr = (which, src) => {
+        addGroupChatMessage("System", `⚠️ Could not load image: ${src}. Check file path/case.`);
+        const el = $(which);
+        if (el) el.alt = "Image missing";
+      };
+
+      imgJ.onerror = () => onErr("img-jollof", IMAGE_PATHS.jollof);
+      imgE.onerror = () => onErr("img-egusi", IMAGE_PATHS.egusi);
+      imgF.onerror = () => onErr("img-fufu", IMAGE_PATHS.fufu);
+    }
+
+    function startGame() {
+      // hide overlay, show game
+      $("how-to-play").style.display = "none";
+      $("game-container").style.display = "block";
+
+      // init visuals
+      gameState.running = true;
+      $("timer").innerText = formatTime(gameState.timerSeconds);
+      setQuality(gameState.quality);
+
+      loadImages();
+      renderContacts();
+
+      // start timer (real seconds)
+      gameState.intervalId = setInterval(updateTimer, 1000);
+
+      // Delayed chat messages (same vibe as your original)
+      setTimeout(() => addGroupChatMessage("Aunt", "My phone acting up. Weird calls."), 10_000);
+      setTimeout(() => addGroupChatMessage("Uncle", 'Same! Got call from "Jollof Palace". Hung up!'), 20_000);
+      setTimeout(() => addGroupChatMessage("Mom", "Wait... [You] called but hung up. Cooking maybe?"), 35_000);
+      setTimeout(() => addGroupChatMessage("Dad", "Mr. Okafor called. Going to [You]’s place. Nobody told me."), 50_000);
+      setTimeout(() => {
+        addGroupChatMessage("Mom", "WHAT?! Nobody tells me anything!");
+        addGroupChatMessage("Aunt", "Eh! [You] better call me NOW!");
+      }, 55_000);
+    }
+
+    /* --------- Wire up events (reliable on mobile) --------- */
+
+    // Start button
+    $("start-game-btn").addEventListener("click", startGame);
+
+    // Contacts list (event delegation)
+    $("contacts-list").addEventListener("click", (e) => {
+      const item = e.target.closest(".contact");
+      if (!item) return;
+      const id = item.dataset.contactId;
+      openPopup(id);
     });
-</script>
+
+    // Popup buttons
+    $("btn-fix").addEventListener("click", onSaveAsFamily);
+    $("btn-wrong").addEventListener("click", onNotFamily);
+    $("btn-hangup").addEventListener("click", onHangUp);
+
+    // Tap outside popup card to close (optional, but nice)
+    $("message-popup").addEventListener("click", (e) => {
+      const card = e.target.closest(".popup-card");
+      if (!card) closePopup();
+    });
+  </script>
+
 </body>
 </html>
-
-
-
-
