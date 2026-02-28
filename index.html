@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spice Interference — Word Only</title>
+  <title>Spice Interference — African Spices</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -140,15 +140,16 @@
       transform: translateX(-50%);
       background: #0f1720;
       color: white;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 40px;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       opacity: 0;
       transition: opacity 200ms ease;
       pointer-events: none;
       white-space: nowrap;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 10;
     }
     .scent-message.show { opacity: 1; }
 
@@ -168,8 +169,8 @@
   <div class="wrap">
     <div class="hud">
       <div class="hud-left">
-        <div class="title">Spice Interference — Word Only</div>
-        <div class="subtitle" id="hudSubtitle">Level 1: Find GINGER</div>
+        <div class="title">Spice Interference — African Spices</div>
+        <div class="subtitle" id="hudSubtitle">Level 1: Find BERBERE</div>
       </div>
       <div class="hud-right">
         <div class="pill">⏳ <strong id="timeVal">—</strong></div>
@@ -184,15 +185,17 @@
 
       <div class="overlay show" id="startOverlay">
         <div class="card">
-          <h1>Find GINGER.</h1>
+          <h1>BERBERE.</h1>
           <p>
-            Black and white. Only GINGER counts.<br>
-            Let the words float. Pop the right one.<br>
+            Find BERBERE. Ignore the others.<br>
+            Black and white. Only the word matters.<br>
             <br>
-            <strong>Each ginger carries a scent memory.</strong>
+            <strong>Each BERBERE carries a different scent memory.</strong><br>
+            <br>
+            Let them float. Pop the right ones before they fade.
           </p>
           <div class="btnRow">
-            <button id="beginBtn" type="button">Start</button>
+            <button id="beginBtn" type="button">Start Level 1</button>
           </div>
         </div>
       </div>
@@ -207,7 +210,7 @@
         </div>
       </div>
 
-      <div class="hint" id="hint">Pop GINGER. Each one smells different.</div>
+      <div class="hint" id="hint">Pop BERBERE. Each one smells different.</div>
     </div>
   </div>
 
@@ -244,25 +247,42 @@
     beginLevel();
   });
 
-  // All possible words for level 1 (black and white, mixed)
-  const ALL_WORDS = [
-    "GINGER", "GINGER", "GINGER", "GINGER", "GINGER",  // 5 targets
-    "CUMIN", "PAPRIKA", "TURMERIC", "CLOVE", "CINNAMON", "PEPPER", "CARDAMOM"
+  // African spices — your exact list
+  const SPICE_LIST = [
+    "SALT", "GINGER", "BERBERE", "HARISSA", "MITMITA", 
+    "TURMERIC", "CLOVE", "UDA", "PIRI PIRI", "MAGGIE", "CUBEB"
   ];
 
-  // Scent descriptions for ginger (varied, to build composite memory)
-  const GINGER_SCENTS = [
-    "sharp — stings the nose slightly",
-    "warm — almost lemony",
-    "earthy — like fresh dirt",
-    "bright — cuts through everything",
-    "peppery — with heat at the back",
-    "clean — makes you inhale deeper"
+  // Target for level 1
+  const TARGET_SPICE = "BERBERE";
+  
+  // Scent descriptions for BERBERE (varied, to build composite memory)
+  const TARGET_SCENTS = [
+    "smoky — like fire and dried chiles",
+    "warm — cloves and cinnamon underneath",
+    "deep red — you can almost see the color",
+    "earthy — with a kick that builds slowly",
+    "complex — every bite tastes different",
+    "Ethiopia — you remember the first time"
   ];
+
+  // Scent descriptions for other spices (used if we expand later)
+  const SPICE_SCENTS = {
+    "SALT": ["clean — like ocean air", "sharp — makes you thirsty", "simple — but essential"],
+    "GINGER": ["sharp — stings the nose", "warm — almost lemony", "peppery — with heat"],
+    "HARISSA": ["fiery — roasted peppers", "garlic — deep and pungent", "north africa — in a paste"],
+    "MITMITA": ["cardamom forward — bright", "clove — then heat", "Ethiopian — on lamb"],
+    "TURMERIC": ["earthy — yellow stain", "bitter — slightly musty", "warm — golden milk"],
+    "CLOVE": ["numbing — medicinal", "sweet — then sharp", "holiday — stuck in an orange"],
+    "UDA": ["musky — like perfume", "smoky — grains of selim", "peppery — with a twist"],
+    "PIRI PIRI": ["citrus — then fire", "bright — makes you sweat", "Portuguese — but African"],
+    "MAGGIE": ["umami — salty", "childhood — in every stew", "cubes — crumbled in"],
+    "CUBEB": ["peppery — but perfumed", "woody — like old cabinets", "sharp — then fades"]
+  };
 
   const ROUND_SECONDS = 30;
-  const TARGET_COUNT = 5; // number of ginger words to pop
-  const TOTAL_WORDS = 12;
+  const TARGET_COUNT = 5; // number of BERBERE words to pop
+  const TOTAL_WORDS = 14;
 
   function rand(a, b) { return Math.random() * (b - a) + a; }
   function randi(a, b) { return Math.floor(rand(a, b + 1)); }
@@ -271,7 +291,7 @@
   class WordTile {
     constructor(x, y, fontSize, vx, vy, text, isTarget) {
       this.x = x; this.y = y;
-      this.fontSize = fontSize; // base size
+      this.fontSize = fontSize;
       this.vx = vx; this.vy = vy;
       this.text = text;
       this.isTarget = isTarget;
@@ -280,12 +300,11 @@
       this.popT = 0;
       
       // Aging mechanic
-      this.age = 0; // 0 to 1, 1 = fully faded/old
-      this.ageRate = rand(0.3, 0.8) / 100; // per frame, randomized
+      this.age = 0; // 0 to 1, 1 = fully faded
+      this.ageRate = rand(0.3, 0.8) / 100;
       this.warningGiven = false;
     }
 
-    // Simple hit detection based on text bounding box
     hit(px, py) {
       ctx.font = `900 ${this.fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
       const metrics = ctx.measureText(this.text);
@@ -315,7 +334,7 @@
         return;
       }
 
-      // Age the spice if it's a target (ginger)
+      // Age the spice if it's a target (BERBERE)
       if (this.isTarget && this.alive) {
         this.age = Math.min(1, this.age + this.ageRate * dt * 30);
       }
@@ -324,7 +343,7 @@
       this.x += this.vx * dt * speedMul;
       this.y += this.vy * dt * speedMul;
 
-      // Bounce off edges with padding
+      // Bounce off edges
       const metrics = ctx.measureText(this.text);
       const width = metrics.width;
       const height = this.fontSize * 1.2;
@@ -351,11 +370,14 @@
       ctx.translate(this.x, this.y);
       ctx.scale(scale, scale);
 
-      // Black and white only — pure grayscale
-      // Darker as they age
-      let grayValue = this.isTarget ? 
-        Math.floor(30 + (this.age * 180)) : // ages from dark to light gray
-        30; // distractors stay dark
+      // Black and white only — grayscale
+      // Targets age from dark to light, distractors stay dark
+      let grayValue = 30; // default dark
+      if (this.isTarget) {
+        grayValue = Math.floor(30 + (this.age * 180));
+      } else {
+        grayValue = 40; // slightly lighter so they're readable but distinct
+      }
       
       ctx.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
       ctx.font = `900 ${this.fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
@@ -363,10 +385,9 @@
       ctx.textBaseline = "middle";
       ctx.fillText(this.text, 0, 0);
 
-      // Optional very faint outline if needed for readability
+      // Warning outline for nearly-expired targets
       if (this.isTarget && this.age > 0.7 && !this.warningGiven) {
-        // Visual cue that it's about to go bad
-        ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
+        ctx.strokeStyle = "rgba(80, 80, 80, 0.4)";
         ctx.lineWidth = 2;
         ctx.strokeText(this.text, 0, 0);
         this.warningGiven = true;
@@ -387,7 +408,7 @@
   const SPEED_MUL = 1.0;
 
   function setHUD() {
-    hudSubtitle.textContent = `Level 1: Find GINGER (${targetsLeft} left)`;
+    hudSubtitle.textContent = `Level 1: Find BERBERE (${targetsLeft} left)`;
     timeVal.textContent = `${Math.ceil(timeLeft)}s`;
     leftVal.textContent = String(targetsLeft);
   }
@@ -400,26 +421,36 @@
   function showScentMessage(text) {
     scentMessage.textContent = text;
     scentMessage.classList.add("show");
-    setTimeout(() => scentMessage.classList.remove("show"), 1200);
+    setTimeout(() => scentMessage.classList.remove("show"), 1400);
   }
 
   function spawnWords() {
     const rect = canvas.getBoundingClientRect();
     const w = rect.width, h = rect.height;
 
-    // Shuffle words to determine which become targets
-    const shuffled = [...ALL_WORDS];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    // Build word list: TARGET_COUNT targets, rest distractors from SPICE_LIST
+    const wordList = [];
+    
+    // Add targets
+    for (let i = 0; i < TARGET_COUNT; i++) {
+      wordList.push(TARGET_SPICE);
+    }
+    
+    // Add distractors (random from SPICE_LIST, excluding target)
+    const distractors = SPICE_LIST.filter(s => s !== TARGET_SPICE);
+    while (wordList.length < TOTAL_WORDS) {
+      wordList.push(pick(distractors));
     }
 
-    // Take first TOTAL_WORDS
-    const selectedWords = shuffled.slice(0, TOTAL_WORDS);
+    // Shuffle
+    for (let i = wordList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [wordList[i], wordList[j]] = [wordList[j], wordList[i]];
+    }
     
     // Create words
-    const newWords = selectedWords.map(text => {
-      const isTarget = (text === "GINGER");
+    const newWords = wordList.map(text => {
+      const isTarget = (text === TARGET_SPICE);
       const fontSize = rand(28, 42);
       const x = rand(fontSize, w - fontSize);
       const y = rand(fontSize, h - fontSize);
@@ -431,7 +462,7 @@
       return new WordTile(x, y, fontSize, vx, vy, text, isTarget);
     });
 
-    // Sort so targets are drawn on top (less frustration)
+    // Sort so targets are drawn on top
     words = [
       ...newWords.filter(w => !w.isTarget),
       ...newWords.filter(w => w.isTarget)
@@ -454,10 +485,10 @@
     endOverlay.classList.add("show");
     if (win) {
       endTitle.textContent = "✅ Cleared";
-      endText.textContent = `You caught all the ginger. Did any scent stick?`;
+      endText.textContent = `You found all the BERBERE. The smells are building.`;
     } else {
       endTitle.textContent = "⏳ Time's up";
-      endText.textContent = `Some ginger got too old. Try again.`;
+      endText.textContent = `Some BERBERE got too old. Try again.`;
     }
   }
 
@@ -482,8 +513,8 @@
 
     if (w.isTarget) {
       // Correct pop — show scent message
-      const scent = pick(GINGER_SCENTS);
-      showScentMessage(`ginger — ${scent}`);
+      const scent = pick(TARGET_SCENTS);
+      showScentMessage(`berbere — ${scent}`);
       
       w.pop();
       targetsLeft = Math.max(0, targetsLeft - 1);
@@ -495,7 +526,7 @@
     } else {
       // Wrong pop — penalty
       flashWrong();
-      timeLeft = Math.max(0, timeLeft - 2); // bigger penalty for wrong word
+      timeLeft = Math.max(0, timeLeft - 2);
       setHUD();
     }
   }
@@ -515,7 +546,7 @@
       timeVal.textContent = `${Math.ceil(timeLeft)}s`;
       leftVal.textContent = String(targetsLeft);
 
-      // Check if any target aged out completely (age >= 1)
+      // Check if any target aged out completely
       const anyAgedOut = words.some(w => w.isTarget && w.alive && w.age >= 1);
       if (anyAgedOut) {
         showEnd(false);
