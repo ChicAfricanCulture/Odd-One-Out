@@ -83,9 +83,11 @@
       align-items: center;
       justify-content: center;
       padding: 16px;
-      background: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.70);
+      z-index: 20;
     }
     .overlay.show { display: flex; }
+
     .card {
       width: min(520px, 100%);
       background: #ffffff;
@@ -130,6 +132,7 @@
       background: rgba(231, 76, 60, 0.12);
       opacity: 0;
       transition: opacity 120ms ease;
+      z-index: 5;
     }
     .flash.show { opacity: 1; }
 
@@ -140,16 +143,19 @@
       transform: translateX(-50%);
       background: #0f1720;
       color: white;
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 40px;
-      font-size: 15px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 700;
       opacity: 0;
       transition: opacity 200ms ease;
       pointer-events: none;
       white-space: nowrap;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       z-index: 10;
+      max-width: calc(100% - 24px);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .scent-message.show { opacity: 1; }
 
@@ -162,6 +168,7 @@
       opacity: 0.78;
       text-align: center;
       pointer-events: none;
+      z-index: 2;
     }
   </style>
 </head>
@@ -170,7 +177,7 @@
     <div class="hud">
       <div class="hud-left">
         <div class="title">Spice Interference — African Spices</div>
-        <div class="subtitle" id="hudSubtitle">Level 1: Find BERBERE</div>
+        <div class="subtitle" id="hudSubtitle">Level 1</div>
       </div>
       <div class="hud-right">
         <div class="pill">⏳ <strong id="timeVal">—</strong></div>
@@ -185,17 +192,10 @@
 
       <div class="overlay show" id="startOverlay">
         <div class="card">
-          <h1>BERBERE.</h1>
-          <p>
-            Find BERBERE. Ignore the others.<br>
-            Black and white. Only the word matters.<br>
-            <br>
-            <strong>Each BERBERE carries a different scent memory.</strong><br>
-            <br>
-            Let them float. Pop the right ones before they fade.
-          </p>
+          <h1 id="startTitle">Level 1</h1>
+          <p id="startDesc"></p>
           <div class="btnRow">
-            <button id="beginBtn" type="button">Start Level 1</button>
+            <button id="beginBtn" type="button">Start</button>
           </div>
         </div>
       </div>
@@ -205,12 +205,13 @@
           <h1 id="endTitle">Done</h1>
           <p id="endText"></p>
           <div class="btnRow">
-            <button id="restartBtn" type="button">Play Again</button>
+            <button id="nextBtn" type="button">Next Level</button>
+            <button id="restartBtn" type="button">Replay Level</button>
           </div>
         </div>
       </div>
 
-      <div class="hint" id="hint">Pop BERBERE. Each one smells different.</div>
+      <div class="hint" id="hint">Tap the correct spice before time runs out.</div>
     </div>
   </div>
 
@@ -231,92 +232,269 @@
   const hudSubtitle = document.getElementById("hudSubtitle");
   const timeVal = document.getElementById("timeVal");
   const leftVal = document.getElementById("leftVal");
+
   const startOverlay = document.getElementById("startOverlay");
+  const startTitle = document.getElementById("startTitle");
+  const startDesc = document.getElementById("startDesc");
+
   const endOverlay = document.getElementById("endOverlay");
   const endTitle = document.getElementById("endTitle");
   const endText = document.getElementById("endText");
+
   const flash = document.getElementById("flash");
   const scentMessage = document.getElementById("scentMessage");
+  const hint = document.getElementById("hint");
 
-  document.getElementById("beginBtn").addEventListener("click", () => {
-    startOverlay.classList.remove("show");
-    beginLevel();
-  });
-  document.getElementById("restartBtn").addEventListener("click", () => {
-    endOverlay.classList.remove("show");
-    beginLevel();
-  });
-
-  // African spices — your exact list
-  const SPICE_LIST = [
-    "SALT", "GINGER", "BERBERE", "HARISSA", "MITMITA", 
-    "TURMERIC", "CLOVE", "UDA", "PIRI PIRI", "MAGGIE", "CUBEB"
-  ];
-
-  // Target for level 1
-  const TARGET_SPICE = "BERBERE";
-  
-  // Scent descriptions for BERBERE (varied, to build composite memory)
-  const TARGET_SCENTS = [
-    "smoky — like fire and dried chiles",
-    "warm — cloves and cinnamon underneath",
-    "deep red — you can almost see the color",
-    "earthy — with a kick that builds slowly",
-    "complex — every bite tastes different",
-    "Ethiopia — you remember the first time"
-  ];
-
-  // Scent descriptions for other spices (used if we expand later)
-  const SPICE_SCENTS = {
-    "SALT": ["clean — like ocean air", "sharp — makes you thirsty", "simple — but essential"],
-    "GINGER": ["sharp — stings the nose", "warm — almost lemony", "peppery — with heat"],
-    "HARISSA": ["fiery — roasted peppers", "garlic — deep and pungent", "north africa — in a paste"],
-    "MITMITA": ["cardamom forward — bright", "clove — then heat", "Ethiopian — on lamb"],
-    "TURMERIC": ["earthy — yellow stain", "bitter — slightly musty", "warm — golden milk"],
-    "CLOVE": ["numbing — medicinal", "sweet — then sharp", "holiday — stuck in an orange"],
-    "UDA": ["musky — like perfume", "smoky — grains of selim", "peppery — with a twist"],
-    "PIRI PIRI": ["citrus — then fire", "bright — makes you sweat", "Portuguese — but African"],
-    "MAGGIE": ["umami — salty", "childhood — in every stew", "cubes — crumbled in"],
-    "CUBEB": ["peppery — but perfumed", "woody — like old cabinets", "sharp — then fades"]
-  };
-
-  const ROUND_SECONDS = 35;
-  const TARGET_COUNT = 5; // number of BERBERE words to pop
-  const TOTAL_WORDS = 14;
+  const beginBtn = document.getElementById("beginBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const restartBtn = document.getElementById("restartBtn");
 
   function rand(a, b) { return Math.random() * (b - a) + a; }
   function randi(a, b) { return Math.floor(rand(a, b + 1)); }
   function pick(arr) { return arr[randi(0, arr.length - 1)]; }
 
+  function flashWrong() {
+    flash.classList.add("show");
+    setTimeout(() => flash.classList.remove("show"), 120);
+  }
+
+  let scentTimer = null;
+  function showScentMessage(text) {
+    scentMessage.textContent = text;
+    scentMessage.classList.add("show");
+    if (scentTimer) clearTimeout(scentTimer);
+    scentTimer = setTimeout(() => scentMessage.classList.remove("show"), 1400);
+  }
+
+  // Your spice list (kept)
+  const SPICE_LIST = [
+    "SALT", "GINGER", "BERBERE", "HARISSA", "MITMITA",
+    "TURMERIC", "CLOVE", "UDA", "PIRI PIRI", "MAGGIE", "CUBEB"
+  ];
+
+  // Canonical “spice colors” (only used when color matters)
+  const SPICE_CANON_COLORS = {
+    "BERBERE":  "#B31217", // deep red
+    "HARISSA":  "#D35400", // orange
+    "MITMITA":  "#7D1F1F", // dark red/brown
+    "TURMERIC": "#D4AC0D", // golden yellow
+    "GINGER":   "#A97142", // ginger brown
+    "CLOVE":    "#3B2F2F",
+    "UDA":      "#2E4053",
+    "PIRI PIRI":"#C0392B",
+    "MAGGIE":   "#B7950B",
+    "CUBEB":    "#1F2D3A",
+    "SALT":     "#7F8C8D"
+  };
+
+  // Scent banks (targets have richer lists)
+  const TARGET_SCENTS = {
+    "BERBERE": [
+      "smoky — fire and dried chiles",
+      "warm — clove under the heat",
+      "deep — red you can almost see",
+      "earthy — slow burn on the tongue",
+      "complex — every bite changes",
+      "memory — Ethiopia in the air"
+    ],
+    "HARISSA": [
+      "fiery — roasted peppers rising",
+      "garlic — deep and pungent",
+      "bright — lemon and heat together",
+      "sticky — oil and pepper paste",
+      "north — warm spice in a jar",
+      "toast — charred pepper sweetness"
+    ],
+    "MITMITA": [
+      "sharp — hot and immediate",
+      "spiced — cardamom flashes first",
+      "deep — clove then heat",
+      "dry — powder that bites",
+      "Ethiopia — lamb and heat",
+      "sting — nose wake-up"
+    ]
+  };
+
+  // Generic scents for distractors (still flavorful)
+  const SPICE_SCENTS = {
+    "SALT": ["clean — ocean air", "simple — but essential", "sharp — makes you thirsty"],
+    "GINGER": ["sharp — stings the nose", "warm — almost lemony", "peppery — alive"],
+    "TURMERIC": ["earthy — yellow stain", "bitter — slightly musty", "warm — golden milk"],
+    "CLOVE": ["numbing — medicinal", "sweet — then sharp", "holiday — in the air"],
+    "UDA": ["musky — like perfume", "smoky — grains of selim", "peppery — a twist"],
+    "PIRI PIRI": ["citrus — then fire", "bright — makes you sweat", "clean heat — sharp"],
+    "MAGGIE": ["umami — salty", "childhood — in stew", "crumbled — in the pot"],
+    "CUBEB": ["peppery — perfumed", "woody — old cabinet", "sharp — then fades"],
+    "BERBERE": ["smoky — red heat", "warm — layered", "deep — spice cloud"],
+    "HARISSA": ["pepper paste — fiery", "garlic heat — thick", "bright — roasted"],
+    "MITMITA": ["sting — immediate", "dry heat — powder", "spiced — sharp"]
+  };
+
+  // Level progression as you described
+  // 1: BW, find BERBERE (build association)
+  // 2: BW, new target HARISSA
+  // 3: Color noise (colors irrelevant), target is word
+  // 4: Color matters (correct word AND correct canonical color)
+  // 5: Faster + colors shift
+  // 6: Max chaos + target changes without warning
+  const LEVELS = [
+    {
+      name: "Level 1",
+      target: "BERBERE",
+      mode: "bwWord", // black and white word only
+      seconds: 35,
+      targetCount: 5,
+      totalWords: 14,
+      speed: 1.0,
+      colorShift: false,
+      targetSwitch: false
+    },
+    {
+      name: "Level 2",
+      target: "HARISSA",
+      mode: "bwWord",
+      seconds: 35,
+      targetCount: 5,
+      totalWords: 14,
+      speed: 1.05,
+      colorShift: false,
+      targetSwitch: false
+    },
+    {
+      name: "Level 3",
+      target: "MITMITA",
+      mode: "colorNoiseWord", // colored words, but color irrelevant
+      seconds: 32,
+      targetCount: 6,
+      totalWords: 16,
+      speed: 1.15,
+      colorShift: false,
+      targetSwitch: false
+    },
+    {
+      name: "Level 4",
+      target: "BERBERE",
+      mode: "wordPlusColor", // must be word AND correct color
+      seconds: 30,
+      targetCount: 6,
+      totalWords: 16,
+      speed: 1.25,
+      colorShift: false,
+      targetSwitch: false
+    },
+    {
+      name: "Level 5",
+      target: "HARISSA",
+      mode: "wordPlusColor",
+      seconds: 28,
+      targetCount: 7,
+      totalWords: 18,
+      speed: 1.35,
+      colorShift: true,       // colors shift mid-round
+      targetSwitch: false
+    },
+    {
+      name: "Level 6",
+      target: "MITMITA",
+      mode: "wordPlusColor",
+      seconds: 26,
+      targetCount: 7,
+      totalWords: 20,
+      speed: 1.55,
+      colorShift: true,
+      targetSwitch: true      // target changes without warning
+    }
+  ];
+
+  let levelIndex = 0;
+  let cfg = LEVELS[levelIndex];
+
+  // game state
+  let mode = "start"; // start | playing | end
+  let tiles = [];
+  let lastTs = 0;
+
+  let timeLeft = 0;
+  let targetsLeft = 0;
+  let currentTarget = ""; // may change in level 6
+  let targetSwitchTimer = 0;
+  let colorShiftTimer = 0;
+
+  // visual colors for text (for color noise / color correctness)
+  const NOISE_COLORS = [
+    "#111111", "#2C3E50", "#B31217", "#D35400", "#1F618D",
+    "#117A65", "#7D3C98", "#B7950B", "#7F8C8D"
+  ];
+
+  function setStartCard() {
+    cfg = LEVELS[levelIndex];
+    currentTarget = cfg.target;
+
+    startTitle.textContent = `${cfg.name}`;
+    const descLines = [];
+
+    if (cfg.mode === "bwWord") {
+      descLines.push(`<strong>${currentTarget}.</strong> Black & white. Only the word matters.`);
+    } else if (cfg.mode === "colorNoiseWord") {
+      descLines.push(`<strong>${currentTarget}.</strong> Words are colored, but color is noise. Only the word matters.`);
+    } else if (cfg.mode === "wordPlusColor") {
+      descLines.push(`<strong>${currentTarget}.</strong> Now color matters too: the word must be the right spice color.`);
+    }
+
+    descLines.push(`Time: <strong>${cfg.seconds}s</strong>. Targets: <strong>${cfg.targetCount}</strong>.`);
+    if (cfg.colorShift) descLines.push(`⚠️ Colors will shift mid-round.`);
+    if (cfg.targetSwitch) descLines.push(`⚠️ Target will change without warning.`);
+
+    descLines.push(`<br><strong>Each correct target shows a scent memory.</strong>`);
+
+    startDesc.innerHTML = descLines.join("<br>");
+    hint.textContent = cfg.mode === "wordPlusColor"
+      ? `Tap ${currentTarget} in its correct color.`
+      : `Tap ${currentTarget}. Ignore the others.`;
+  }
+
+  function setHUD() {
+    hudSubtitle.textContent = `${cfg.name}: Find ${currentTarget}${cfg.mode === "wordPlusColor" ? " (and match color)" : ""}`;
+    timeVal.textContent = `${Math.ceil(timeLeft)}s`;
+    leftVal.textContent = String(targetsLeft);
+  }
+
   class WordTile {
-    constructor(x, y, fontSize, vx, vy, text, isTarget) {
+    constructor(x, y, fontSize, vx, vy, text, isTarget, displayColor) {
       this.x = x; this.y = y;
       this.fontSize = fontSize;
       this.vx = vx; this.vy = vy;
       this.text = text;
       this.isTarget = isTarget;
+      this.displayColor = displayColor;
+
       this.alive = true;
       this.popping = false;
       this.popT = 0;
-      
-      // Aging mechanic
-      this.age = 0; // 0 to 1, 1 = fully faded
-      this.ageRate = rand(0.3, 0.8) / 100;
-      this.warningGiven = false;
+
+      // aging/fade only in level 1/2/3 to create urgency without rule flips
+      this.age = 0;           // 0..1
+      this.ageRate = rand(0.25, 0.65) / 100;
+    }
+
+    _setFont() {
+      ctx.font = `900 ${this.fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
     }
 
     hit(px, py) {
-      ctx.font = `900 ${this.fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      this._setFont();
       const metrics = ctx.measureText(this.text);
       const width = metrics.width;
       const height = this.fontSize * 1.2;
-      
+
       const left = this.x - width/2;
       const right = this.x + width/2;
       const top = this.y - height/2;
       const bottom = this.y + height/2;
-      
-      return px >= left && px <= right && py >= top && py <= bottom;
+
+      // generous hitbox padding
+      const pad = 8;
+      return px >= left - pad && px <= right + pad && py >= top - pad && py <= bottom + pad;
     }
 
     pop() {
@@ -325,7 +503,7 @@
       this.popT = 0;
     }
 
-    update(dt, w, h, speedMul=1) {
+    update(dt, width, height, speedMul=1) {
       if (!this.alive) return;
 
       if (this.popping) {
@@ -334,25 +512,27 @@
         return;
       }
 
-      // Age the spice if it's a target (BERBERE)
-      if (this.isTarget && this.alive) {
+      // age/fade mechanic: only in early levels (makes “word attention” matter)
+      const useAging = (levelIndex <= 2); // levels 1–3
+      if (useAging && this.isTarget) {
         this.age = Math.min(1, this.age + this.ageRate * dt * 30);
       }
 
-      // Movement
+      // movement
       this.x += this.vx * dt * speedMul;
       this.y += this.vy * dt * speedMul;
 
-      // Bounce off edges
+      // bounce based on measured text box
+      this._setFont();
       const metrics = ctx.measureText(this.text);
-      const width = metrics.width;
-      const height = this.fontSize * 1.2;
+      const tw = metrics.width;
+      const th = this.fontSize * 1.2;
       const pad = 10;
-      
-      if (this.x - width/2 < pad) { this.x = pad + width/2; this.vx *= -1; }
-      if (this.x + width/2 > w - pad) { this.x = w - pad - width/2; this.vx *= -1; }
-      if (this.y - height/2 < pad) { this.y = pad + height/2; this.vy *= -1; }
-      if (this.y + height/2 > h - pad) { this.y = h - pad - height/2; this.vy *= -1; }
+
+      if (this.x - tw/2 < pad) { this.x = pad + tw/2; this.vx *= -1; }
+      if (this.x + tw/2 > width - pad) { this.x = width - pad - tw/2; this.vx *= -1; }
+      if (this.y - th/2 < pad) { this.y = pad + th/2; this.vy *= -1; }
+      if (this.y + th/2 > height - pad) { this.y = height - pad - th/2; this.vy *= -1; }
     }
 
     draw(ctx) {
@@ -366,116 +546,110 @@
       }
 
       ctx.save();
-      ctx.globalAlpha = alpha * (this.isTarget ? (1 - this.age * 0.6) : 1);
+      // targets fade slightly as they age (early levels)
+      const fade = this.isTarget ? (1 - this.age * 0.55) : 1;
+      ctx.globalAlpha = alpha * fade;
+
       ctx.translate(this.x, this.y);
       ctx.scale(scale, scale);
 
-      // Black and white only — grayscale
-      // Targets age from dark to light, distractors stay dark
-      let grayValue = 30; // default dark
-      if (this.isTarget) {
-        grayValue = Math.floor(30 + (this.age * 180));
+      // choose color based on level mode
+      let color = "#222";
+      if (cfg.mode === "bwWord") {
+        color = this.isTarget ? "rgb(25,25,25)" : "rgb(40,40,40)";
+        // targets slowly lighten as they age (subtle)
+        if (this.isTarget) {
+          const g = Math.floor(25 + this.age * 160);
+          color = `rgb(${g},${g},${g})`;
+        }
       } else {
-        grayValue = 40; // slightly lighter so they're readable but distinct
+        // colored modes
+        color = this.displayColor || "#222";
       }
-      
-      ctx.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+
+      ctx.fillStyle = color;
       ctx.font = `900 ${this.fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(this.text, 0, 0);
 
-      // Warning outline for nearly-expired targets
-      if (this.isTarget && this.age > 0.7 && !this.warningGiven) {
-        ctx.strokeStyle = "rgba(80, 80, 80, 0.4)";
-        ctx.lineWidth = 2;
-        ctx.strokeText(this.text, 0, 0);
-        this.warningGiven = true;
-      }
-
       ctx.restore();
     }
   }
 
-  let mode = "idle";
-  let words = [];
-  let lastTs = 0;
-
-  let timeLeft = ROUND_SECONDS;
-  let targetsLeft = TARGET_COUNT;
-
-  const BASE_SPEED = 28;
-  const SPEED_MUL = 1.0;
-
-  function setHUD() {
-    hudSubtitle.textContent = `Level 1: Find BERBERE (${targetsLeft} left)`;
-    timeVal.textContent = `${Math.ceil(timeLeft)}s`;
-    leftVal.textContent = String(targetsLeft);
-  }
-
-  function flashWrong() {
-    flash.classList.add("show");
-    setTimeout(() => flash.classList.remove("show"), 120);
-  }
-
-  function showScentMessage(text) {
-    scentMessage.textContent = text;
-    scentMessage.classList.add("show");
-    setTimeout(() => scentMessage.classList.remove("show"), 1400);
-  }
-
-  function spawnWords() {
+  function spawnTiles() {
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width, h = rect.height;
+    const width = rect.width, height = rect.height;
 
-    // Build word list: TARGET_COUNT targets, rest distractors from SPICE_LIST
-    const wordList = [];
-    
-    // Add targets
-    for (let i = 0; i < TARGET_COUNT; i++) {
-      wordList.push(TARGET_SPICE);
-    }
-    
-    // Add distractors (random from SPICE_LIST, excluding target)
-    const distractors = SPICE_LIST.filter(s => s !== TARGET_SPICE);
-    while (wordList.length < TOTAL_WORDS) {
-      wordList.push(pick(distractors));
-    }
+    const targetCount = cfg.targetCount;
+    const totalWords = cfg.totalWords;
 
-    // Shuffle
-    for (let i = wordList.length - 1; i > 0; i--) {
+    // build list with targets + distractors
+    const list = [];
+    for (let i = 0; i < targetCount; i++) list.push(currentTarget);
+
+    const distractors = SPICE_LIST.filter(s => s !== currentTarget);
+    while (list.length < totalWords) list.push(pick(distractors));
+
+    // shuffle
+    for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [wordList[i], wordList[j]] = [wordList[j], wordList[i]];
+      [list[i], list[j]] = [list[j], list[i]];
     }
-    
-    // Create words
-    const newWords = wordList.map(text => {
-      const isTarget = (text === TARGET_SPICE);
-      const fontSize = rand(28, 42);
-      const x = rand(fontSize, w - fontSize);
-      const y = rand(fontSize, h - fontSize);
+
+    const newTiles = list.map(text => {
+      const isTarget = (text === currentTarget);
+      const fontSize = rand(26, 44);
+      const x = rand(fontSize, width - fontSize);
+      const y = rand(fontSize + 10, height - fontSize - 10);
+
       const angle = rand(0, Math.PI * 2);
-      const speed = rand(BASE_SPEED * 0.7, BASE_SPEED * 1.3);
+      const speed = rand(26, 42); // base speed; cfg.speed will multiply
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
 
-      return new WordTile(x, y, fontSize, vx, vy, text, isTarget);
+      // determine display color
+      let displayColor = "#222";
+      if (cfg.mode === "bwWord") {
+        displayColor = "#222";
+      } else if (cfg.mode === "colorNoiseWord") {
+        // random colors: noise, irrelevant
+        displayColor = pick(NOISE_COLORS);
+      } else if (cfg.mode === "wordPlusColor") {
+        if (isTarget) {
+          // correct canonical color for the spice
+          displayColor = SPICE_CANON_COLORS[text] || "#B31217";
+        } else {
+          // distractors: either canonical or random, varies by level
+          // in L5/L6 we want more confusion, so randomize more often
+          const chaos = (levelIndex >= 4);
+          displayColor = chaos ? pick(NOISE_COLORS) : (SPICE_CANON_COLORS[text] || pick(NOISE_COLORS));
+        }
+      }
+
+      return new WordTile(x, y, fontSize, vx, vy, text, isTarget, displayColor);
     });
 
-    // Sort so targets are drawn on top
-    words = [
-      ...newWords.filter(w => !w.isTarget),
-      ...newWords.filter(w => w.isTarget)
-    ];
+    // draw targets on top (reduces hiding frustration)
+    tiles = [...newTiles.filter(t => !t.isTarget), ...newTiles.filter(t => t.isTarget)];
   }
 
   function beginLevel() {
     resizeCanvas();
-    mode = "level";
-    timeLeft = ROUND_SECONDS;
-    targetsLeft = TARGET_COUNT;
+    cfg = LEVELS[levelIndex];
+    mode = "playing";
+
+    timeLeft = cfg.seconds;
+    currentTarget = cfg.target;
+    targetsLeft = cfg.targetCount;
+
+    // timers for level behaviors
+    targetSwitchTimer = 0;
+    colorShiftTimer = 0;
+
     setHUD();
-    spawnWords();
+    spawnTiles();
+
     lastTs = performance.now();
     requestAnimationFrame(loop);
   }
@@ -483,12 +657,15 @@
   function showEnd(win) {
     mode = "end";
     endOverlay.classList.add("show");
+
     if (win) {
       endTitle.textContent = "✅ Cleared";
-      endText.textContent = `You found all the BERBERE. The smells are building.`;
+      endText.textContent = `You cleared ${currentTarget}. The scent memory is building.`;
+      nextBtn.style.display = (levelIndex < LEVELS.length - 1) ? "inline-block" : "none";
     } else {
-      endTitle.textContent = "⏳ Time's up";
-      endText.textContent = `Some BERBERE got too old. Try again.`;
+      endTitle.textContent = "⏳ Time / Fade";
+      endText.textContent = `Try again. Your brain will try shortcuts (color, pattern, speed).`;
+      nextBtn.style.display = "none";
     }
   }
 
@@ -497,35 +674,49 @@
     return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
   }
 
+  function isCorrectClick(tile) {
+    // must match target word always
+    if (tile.text !== currentTarget) return false;
+
+    // in color-correct levels, the tile must also have the canonical color
+    if (cfg.mode === "wordPlusColor") {
+      const canon = SPICE_CANON_COLORS[currentTarget] || "#B31217";
+      return tile.displayColor.toLowerCase() === canon.toLowerCase();
+    }
+
+    return true;
+  }
+
   function onPointerDown(ev) {
-    if (mode !== "level") return;
+    if (mode !== "playing") return;
+
     const { x, y } = getPointerPos(ev);
 
-    // Hit topmost word first
+    // hit topmost tile
     let hitIndex = -1;
-    for (let i = words.length - 1; i >= 0; i--) {
-      const w = words[i];
-      if (w.alive && !w.popping && w.hit(x, y)) { hitIndex = i; break; }
+    for (let i = tiles.length - 1; i >= 0; i--) {
+      const t = tiles[i];
+      if (t.alive && !t.popping && t.hit(x, y)) { hitIndex = i; break; }
     }
     if (hitIndex === -1) return;
 
-    const w = words[hitIndex];
+    const t = tiles[hitIndex];
 
-    if (w.isTarget) {
-      // Correct pop — show scent message
-      const scent = pick(TARGET_SCENTS);
-      showScentMessage(`berbere — ${scent}`);
-      
-      w.pop();
+    if (isCorrectClick(t)) {
+      // scent message on correct
+      const bank = TARGET_SCENTS[currentTarget] || SPICE_SCENTS[currentTarget] || ["spice — memory"];
+      showScentMessage(`${currentTarget.toLowerCase()} — ${pick(bank)}`);
+
+      t.pop();
       targetsLeft = Math.max(0, targetsLeft - 1);
       setHUD();
-      
+
       if (targetsLeft <= 0) {
         setTimeout(() => showEnd(true), 520);
       }
     } else {
-      // Wrong pop — penalty
       flashWrong();
+      // penalty: time, but not brutal
       timeLeft = Math.max(0, timeLeft - 2);
       setHUD();
     }
@@ -533,46 +724,133 @@
 
   canvas.addEventListener("pointerdown", onPointerDown);
 
+  beginBtn.addEventListener("click", () => {
+    startOverlay.classList.remove("show");
+    endOverlay.classList.remove("show");
+    beginLevel();
+  });
+
+  restartBtn.addEventListener("click", () => {
+    endOverlay.classList.remove("show");
+    beginLevel();
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (levelIndex < LEVELS.length - 1) levelIndex++;
+    endOverlay.classList.remove("show");
+    startOverlay.classList.add("show");
+    setStartCard();
+  });
+
+  function maybeDoColorShift(dt) {
+    if (!cfg.colorShift) return;
+
+    // shift colors every ~2.3s
+    colorShiftTimer += dt;
+    if (colorShiftTimer < 2.3) return;
+    colorShiftTimer = 0;
+
+    for (const t of tiles) {
+      if (!t.alive || t.popping) continue;
+
+      if (cfg.mode === "wordPlusColor") {
+        // In shifting levels, even targets might get wrong colors sometimes
+        // This creates the “chaos” you described.
+        const keepCorrectSometimes = (Math.random() < 0.55);
+        if (t.text === currentTarget && keepCorrectSometimes) {
+          t.displayColor = SPICE_CANON_COLORS[t.text] || "#B31217";
+        } else {
+          t.displayColor = pick(NOISE_COLORS);
+        }
+      } else if (cfg.mode === "colorNoiseWord") {
+        t.displayColor = pick(NOISE_COLORS);
+      }
+    }
+  }
+
+  function maybeSwitchTarget(dt) {
+    if (!cfg.targetSwitch) return;
+
+    targetSwitchTimer += dt;
+    // change target every ~6 seconds
+    if (targetSwitchTimer < 6) return;
+    targetSwitchTimer = 0;
+
+    // pick among the 3 “signature” spices so memory builds
+    const candidates = ["BERBERE", "HARISSA", "MITMITA"];
+    let next = pick(candidates);
+    if (next === currentTarget) next = pick(candidates);
+
+    currentTarget = next;
+    hint.textContent = cfg.mode === "wordPlusColor"
+      ? `Target changed. Tap ${currentTarget} in its correct color.`
+      : `Target changed. Tap ${currentTarget}.`;
+
+    // re-tag which tiles are considered targets (word match)
+    // and ensure targets draw on top
+    for (const t of tiles) {
+      t.isTarget = (t.text === currentTarget);
+      if (cfg.mode === "wordPlusColor" && t.isTarget) {
+        // optionally snap some targets to correct color immediately
+        if (Math.random() < 0.7) t.displayColor = SPICE_CANON_COLORS[currentTarget] || "#B31217";
+      }
+    }
+    tiles = [...tiles.filter(t => !t.isTarget), ...tiles.filter(t => t.isTarget)];
+    setHUD();
+    showScentMessage(`target — ${currentTarget.toLowerCase()}`);
+  }
+
   function loop(ts) {
     const rect = canvas.getBoundingClientRect();
-    const w = rect.width, h = rect.height;
+    const width = rect.width, height = rect.height;
 
     const dt = Math.min(0.033, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    if (mode === "level") {
+    if (mode === "playing") {
       timeLeft -= dt;
       if (timeLeft < 0) timeLeft = 0;
+
       timeVal.textContent = `${Math.ceil(timeLeft)}s`;
       leftVal.textContent = String(targetsLeft);
 
-      // Check if any target aged out completely
-      const anyAgedOut = words.some(w => w.isTarget && w.alive && w.age >= 1);
-      if (anyAgedOut) {
-        showEnd(false);
-        return;
-      }
+      // Level behaviors
+      maybeDoColorShift(dt);
+      maybeSwitchTarget(dt);
 
+      // fail if time runs out
       if (timeLeft <= 0 && targetsLeft > 0) {
         showEnd(false);
         return;
       }
+
+      // fail if any target fully aged out (early levels)
+      const useAging = (levelIndex <= 2); // levels 1–3
+      if (useAging) {
+        const agedOut = tiles.some(t => t.text === currentTarget && t.alive && !t.popping && t.age >= 1);
+        if (agedOut) {
+          showEnd(false);
+          return;
+        }
+      }
     }
 
-    for (const w of words) w.update(dt, w, h, SPEED_MUL);
+    // update + draw
+    for (const t of tiles) t.update(dt, width, height, cfg.speed);
 
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
-    
-    for (const w of words) w.draw(ctx);
+    ctx.fillRect(0, 0, width, height);
 
-    if (mode === "level") requestAnimationFrame(loop);
+    for (const t of tiles) t.draw(ctx);
+
+    if (mode === "playing") requestAnimationFrame(loop);
   }
 
+  // Boot
   resizeCanvas();
+  setStartCard();
 })();
 </script>
 </body>
 </html>
-
