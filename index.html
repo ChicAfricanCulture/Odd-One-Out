@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spice Interference — Prototype</title>
+  <title>Spice Interference — Words First Prototype</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
       height: 100%;
       margin: 0;
-      overflow: hidden; /* single-screen, no page scroll */
+      overflow: hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: #ffffff;
       color: #0f1720;
     }
 
-    /* Centered mobile-first stage */
     .wrap {
       height: 100%;
       width: min(520px, 100%);
@@ -24,7 +23,6 @@
       flex-direction: column;
     }
 
-    /* HUD */
     .hud {
       padding: 10px 12px;
       display: flex;
@@ -44,7 +42,7 @@
     }
     .subtitle {
       font-size: 12px;
-      opacity: 0.75;
+      opacity: 0.78;
       line-height: 1.2;
     }
     .hud-right {
@@ -66,7 +64,6 @@
     }
     .pill strong { font-weight: 1000; }
 
-    /* Canvas fills remaining space */
     .stage {
       flex: 1 1 auto;
       min-height: 0;
@@ -76,10 +73,9 @@
       width: 100%;
       height: 100%;
       display: block;
-      touch-action: manipulation; /* better mobile taps */
+      touch-action: manipulation;
     }
 
-    /* Overlay screens */
     .overlay {
       position: absolute;
       inset: 0;
@@ -127,7 +123,6 @@
     }
     button:active { transform: translateY(1px); }
 
-    /* Subtle wrong-click flash */
     .flash {
       position: absolute;
       inset: 0;
@@ -138,14 +133,13 @@
     }
     .flash.show { opacity: 1; }
 
-    /* Tiny bottom hint text */
     .hint {
       position: absolute;
       left: 12px;
       right: 12px;
       bottom: 10px;
       font-size: 12px;
-      opacity: 0.75;
+      opacity: 0.78;
       text-align: center;
       pointer-events: none;
     }
@@ -155,7 +149,7 @@
   <div class="wrap">
     <div class="hud">
       <div class="hud-left">
-        <div class="title" id="hudTitle">Spice Interference — Prototype</div>
+        <div class="title">Spice Interference — Words First</div>
         <div class="subtitle" id="hudSubtitle">Warm-up: pop one bubble</div>
       </div>
       <div class="hud-right">
@@ -168,13 +162,12 @@
       <canvas id="c"></canvas>
       <div class="flash" id="flash"></div>
 
-      <!-- Start / warm-up overlay -->
       <div class="overlay show" id="startOverlay">
         <div class="card">
           <h1>Pop one bubble to calibrate.</h1>
           <p>
-            This game is simple on purpose: the rule stays constant.
-            Your mind is the difficulty.
+            Rule stays constant. Colors are a trap. You win by reading the <strong>scent cue</strong>.
+            Your brain will try to use shortcuts anyway.
           </p>
           <div class="btnRow">
             <button id="beginWarmupBtn" type="button">Start Warm-up</button>
@@ -182,7 +175,6 @@
         </div>
       </div>
 
-      <!-- End overlay -->
       <div class="overlay" id="endOverlay">
         <div class="card">
           <h1 id="endTitle">Result</h1>
@@ -193,15 +185,12 @@
         </div>
       </div>
 
-      <div class="hint" id="hint">Tip: read the name, but your brain will read the scent words too.</div>
+      <div class="hint" id="hint">Collect by scent cue, not by color. (Your brain will still try.)</div>
     </div>
   </div>
 
 <script>
 (() => {
-  /***********************
-   *  Canvas setup
-   ***********************/
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
 
@@ -214,9 +203,6 @@
   }
   window.addEventListener("resize", resizeCanvas);
 
-  /***********************
-   *  UI elements
-   ***********************/
   const hudSubtitle = document.getElementById("hudSubtitle");
   const timeVal = document.getElementById("timeVal");
   const leftVal = document.getElementById("leftVal");
@@ -230,57 +216,63 @@
     startOverlay.classList.remove("show");
     beginWarmup();
   });
-
   document.getElementById("restartBtn").addEventListener("click", () => {
     endOverlay.classList.remove("show");
     beginWarmup();
   });
 
-  /***********************
-   *  Game data
-   ***********************/
-  // Dark, saturated bubble colors (high contrast against white)
-  const SPICES = [
-    { key: "turmeric", name: "TURMERIC", scent: "earthy gold", color: "#2E5E4E" }, // deep green
-    { key: "ginger",   name: "GINGER",   scent: "sharp warm",  color: "#3B2A6F" }, // deep purple
-    { key: "cumin",    name: "CUMIN",    scent: "dusty smoke", color: "#1B4F72" }, // deep blue
-    { key: "paprika",  name: "PAPRIKA",  scent: "sweet red",   color: "#6A1B1A" }, // deep maroon
-    { key: "clove",    name: "CLOVE",    scent: "dark sweet",  color: "#2C3E50" }, // slate
-    { key: "cinnamon", name: "CINNAMON", scent: "warm wood",   color: "#4E342E" }, // brown
-    { key: "pepper",   name: "BLACK PEPPER", scent: "sharp bite", color: "#263238" } // charcoal
+  // Beautiful palette, but assigned randomly to bubbles (NOT meaning)
+  const COLOR_PALETTE = [
+    "#1B4F72", // deep blue
+    "#2C3E50", // slate
+    "#4E342E", // brown
+    "#6A1B1A", // maroon
+    "#2E5E4E", // deep green
+    "#3B2A6F", // deep purple
+    "#0B3D2E", // pine
+    "#2D3436", // charcoal
+    "#5D3B09"  // deep amber/brown
   ];
 
-  const TARGET_KEY = "turmeric";
+  // Spices with scent cues (the real identifiers)
+  // IMPORTANT: Target is based on SCENT CUE now.
+  const SPICES = [
+    { key: "turmeric", name: "TURMERIC", scent: "earthy gold" },
+    { key: "ginger",   name: "GINGER",   scent: "sharp warm" },
+    { key: "cumin",    name: "CUMIN",    scent: "dusty smoke" },
+    { key: "paprika",  name: "PAPRIKA",  scent: "sweet red" },
+    { key: "clove",    name: "CLOVE",    scent: "dark sweet" },
+    { key: "cinnamon", name: "CINNAMON", scent: "warm wood" },
+    { key: "pepper",   name: "BLACK PEPPER", scent: "sharp bite" },
+    { key: "cardamom", name: "CARDAMOM", scent: "bright floral" },
+    { key: "nutmeg",   name: "NUTMEG",   scent: "warm nut" }
+  ];
+
+  // Constant rule for the round: collect scent cue
+  const TARGET_SCENT = "earthy gold"; // turmeric cue
   const ROUND_SECONDS = 30;
   const TOTAL_BUBBLES = 12;
   const TARGET_COUNT = 3;
 
-  /***********************
-   *  Bubbles
-   ***********************/
-  // We’ll draw text in near-black for maximum readability.
-  const TEXT_MAIN = "#0B0F14";
-  const TEXT_SUB  = "rgba(11,15,20,0.86)";
-
   function rand(a, b) { return Math.random() * (b - a) + a; }
   function randi(a, b) { return Math.floor(rand(a, b + 1)); }
+  function pick(arr) { return arr[randi(0, arr.length - 1)]; }
 
   class Bubble {
-    constructor(x, y, r, vx, vy, spice) {
+    constructor(x, y, r, vx, vy, spice, color, isTarget) {
       this.x = x; this.y = y; this.r = r;
       this.vx = vx; this.vy = vy;
       this.spice = spice;
+      this.color = color;          // random aesthetic color
+      this.isTarget = isTarget;    // used for draw order
       this.alive = true;
-
-      // pop animation
       this.popping = false;
-      this.popT = 0; // 0..1
+      this.popT = 0;
     }
 
     hit(px, py) {
-      const dx = px - this.x;
-      const dy = py - this.y;
-      return (dx*dx + dy*dy) <= (this.r * this.r);
+      const dx = px - this.x, dy = py - this.y;
+      return (dx*dx + dy*dy) <= (this.r*this.r);
     }
 
     pop() {
@@ -293,17 +285,14 @@
       if (!this.alive) return;
 
       if (this.popping) {
-        this.popT += dt * 3.2; // pop speed
-        if (this.popT >= 1) {
-          this.alive = false;
-        }
+        this.popT += dt * 3.2;
+        if (this.popT >= 1) this.alive = false;
         return;
       }
 
       this.x += this.vx * dt * speedMul;
       this.y += this.vy * dt * speedMul;
 
-      // bounce (with padding)
       const pad = 2;
       if (this.x - this.r < pad) { this.x = this.r + pad; this.vx *= -1; }
       if (this.x + this.r > w - pad) { this.x = w - this.r - pad; this.vx *= -1; }
@@ -314,11 +303,8 @@
     draw(ctx) {
       if (!this.alive) return;
 
-      // pop scale/alpha
-      let scale = 1;
-      let alpha = 1;
+      let scale = 1, alpha = 1;
       if (this.popping) {
-        // ease-out shrink
         const t = Math.min(1, this.popT);
         scale = 1 - t * 0.9;
         alpha = 1 - t;
@@ -329,39 +315,36 @@
       ctx.translate(this.x, this.y);
       ctx.scale(scale, scale);
 
-      // Circle
+      // Bubble
       ctx.beginPath();
       ctx.arc(0, 0, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = this.spice.color;
+      ctx.fillStyle = this.color;
       ctx.fill();
 
-      // Soft highlight ring (subtle)
       ctx.lineWidth = 2;
       ctx.strokeStyle = "rgba(255,255,255,0.18)";
       ctx.stroke();
 
-      // Text (high contrast on dark bubble)
-      const nameSize = Math.max(12, Math.min(16, this.r * 0.32));
-      const scentSize = Math.max(10, Math.min(13, this.r * 0.24));
+      // TEXT: words-first
+      // BIG scent cue, small spice name
+      const scentSize = Math.max(13, Math.min(18, this.r * 0.34));
+      const nameSize  = Math.max(10, Math.min(13, this.r * 0.22));
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       ctx.fillStyle = "rgba(255,255,255,0.95)";
-      ctx.font = `1000 ${nameSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-      ctx.fillText(this.spice.name, 0, -scentSize * 0.35);
+      ctx.font = `1000 ${scentSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      ctx.fillText(this.spice.scent.toUpperCase(), 0, -nameSize * 0.25);
 
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
-      ctx.font = `800 ${scentSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-      ctx.fillText(this.spice.scent, 0, scentSize * 0.85);
+      ctx.fillStyle = "rgba(255,255,255,0.82)";
+      ctx.font = `900 ${nameSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      ctx.fillText(this.spice.name, 0, scentSize * 0.72);
 
       ctx.restore();
     }
   }
 
-  /***********************
-   *  Game states
-   ***********************/
   let mode = "idle"; // idle | warmup | round | end
   let bubbles = [];
   let lastTs = 0;
@@ -369,8 +352,7 @@
   let timeLeft = ROUND_SECONDS;
   let targetsLeft = TARGET_COUNT;
 
-  // For the “bubbles screensaver” feel
-  const BASE_SPEED = 34; // px/sec baseline drift
+  const BASE_SPEED = 34;
   const SPEED_MUL_ROUND1 = 1.0;
 
   function setHUDWarmup() {
@@ -380,21 +362,9 @@
   }
 
   function setHUDRound() {
-    hudSubtitle.textContent = "Round 1: Collect TURMERIC";
-    timeVal.textContent = `${timeLeft}s`;
+    hudSubtitle.textContent = `Round 1: Collect "${TARGET_SCENT.toUpperCase()}"`;
+    timeVal.textContent = `${Math.ceil(timeLeft)}s`;
     leftVal.textContent = String(targetsLeft);
-  }
-
-  function showEnd(win) {
-    mode = "end";
-    endOverlay.classList.add("show");
-    if (win) {
-      endTitle.textContent = "✅ Good focus.";
-      endText.textContent = `You cleared all TURMERIC bubbles with ${timeLeft}s left.`;
-    } else {
-      endTitle.textContent = "⏳ Time.";
-      endText.textContent = `Targets left: ${targetsLeft}. Try again—your brain will interfere less with practice.`;
-    }
   }
 
   function flashWrong() {
@@ -406,18 +376,18 @@
     const rect = canvas.getBoundingClientRect();
     const w = rect.width, h = rect.height;
 
-    const spice = SPICES.find(s => s.key === TARGET_KEY);
-    const r = Math.min(w, h) * 0.18; // big warm-up bubble
+    const r = Math.min(w, h) * 0.18;
     const x = w * 0.5;
     const y = h * 0.48;
 
     bubbles = [
-      new Bubble(x, y, r, rand(-10, 10), rand(-10, 10), {
-        ...spice,
-        // For warmup, make it explicit
-        name: "POP ME",
-        scent: "tap to begin"
-      })
+      new Bubble(
+        x, y, r,
+        rand(-10, 10), rand(-10, 10),
+        { name: "POP ME", scent: "tap to begin" },
+        pick(COLOR_PALETTE),
+        true
+      )
     ];
   }
 
@@ -425,43 +395,43 @@
     const rect = canvas.getBoundingClientRect();
     const w = rect.width, h = rect.height;
 
-    const all = SPICES.slice();
-    const target = all.find(s => s.key === TARGET_KEY);
-    const distractors = all.filter(s => s.key !== TARGET_KEY);
+    const targetSpice = SPICES.find(s => s.scent === TARGET_SCENT);
+    const distractors = SPICES.filter(s => s.scent !== TARGET_SCENT);
 
-    // Choose bubble sizes for readability on mobile
     const minR = Math.max(42, Math.min(56, w * 0.12));
     const maxR = Math.max(52, Math.min(70, w * 0.16));
 
-    // Create spices list for round
-    const roundSpices = [];
-    for (let i = 0; i < TARGET_COUNT; i++) roundSpices.push(target);
-    while (roundSpices.length < TOTAL_BUBBLES) {
-      roundSpices.push(distractors[randi(0, distractors.length - 1)]);
+    const roundSpecs = [];
+    for (let i = 0; i < TARGET_COUNT; i++) roundSpecs.push({ spice: targetSpice, isTarget: true });
+    while (roundSpecs.length < TOTAL_BUBBLES) {
+      roundSpecs.push({ spice: distractors[randi(0, distractors.length - 1)], isTarget: false });
     }
 
-    // Shuffle
-    for (let i = roundSpices.length - 1; i > 0; i--) {
+    // Shuffle positions (targets not all together)
+    for (let i = roundSpecs.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [roundSpices[i], roundSpices[j]] = [roundSpices[j], roundSpices[i]];
+      [roundSpecs[i], roundSpecs[j]] = [roundSpecs[j], roundSpecs[i]];
     }
 
-    // Place bubbles (simple random placement; overlap allowed)
-    bubbles = roundSpices.map((sp, idx) => {
+    // Create bubbles; colors are random and unrelated to spice
+    const created = roundSpecs.map(({spice, isTarget}) => {
       const r = rand(minR, maxR);
-
-      // Keep bubbles mostly in view; allow overlap naturally
       const x = rand(r + 6, w - r - 6);
       const y = rand(r + 6, h - r - 6);
 
-      // Random drift
       const angle = rand(0, Math.PI * 2);
       const speed = rand(BASE_SPEED * 0.75, BASE_SPEED * 1.25);
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
 
-      return new Bubble(x, y, r, vx, vy, sp);
+      return new Bubble(x, y, r, vx, vy, spice, pick(COLOR_PALETTE), isTarget);
     });
+
+    // Key: draw targets on top (reduces “hidden behind forever” frustration)
+    bubbles = [
+      ...created.filter(b => !b.isTarget),
+      ...created.filter(b => b.isTarget),
+    ];
   }
 
   function beginWarmup() {
@@ -481,72 +451,63 @@
     spawnBubblesRound();
   }
 
-  /***********************
-   *  Input
-   ***********************/
+  function showEnd(win) {
+    mode = "end";
+    endOverlay.classList.add("show");
+    if (win) {
+      endTitle.textContent = "✅ Good focus.";
+      endText.textContent = `You cleared all "${TARGET_SCENT}" bubbles with ${Math.ceil(timeLeft)}s left.`;
+    } else {
+      endTitle.textContent = "⏳ Time.";
+      endText.textContent = `Targets left: ${targetsLeft}. Try again — your brain will still try to shortcut by color.`;
+    }
+  }
+
   function getPointerPos(ev) {
     const rect = canvas.getBoundingClientRect();
-    const x = (ev.clientX - rect.left);
-    const y = (ev.clientY - rect.top);
-    return { x, y };
+    return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
   }
 
   function onPointerDown(ev) {
     if (mode !== "warmup" && mode !== "round") return;
-
     const { x, y } = getPointerPos(ev);
 
-    // Find topmost bubble hit: check from end to start (draw order)
+    // Hit topmost bubble first
     let hitIndex = -1;
     for (let i = bubbles.length - 1; i >= 0; i--) {
       const b = bubbles[i];
-      if (b.alive && !b.popping && b.hit(x, y)) {
-        hitIndex = i;
-        break;
-      }
+      if (b.alive && !b.popping && b.hit(x, y)) { hitIndex = i; break; }
     }
-
-    if (hitIndex === -1) return; // no penalty for background taps
+    if (hitIndex === -1) return;
 
     const b = bubbles[hitIndex];
 
     if (mode === "warmup") {
       b.pop();
       hudSubtitle.textContent = "Good. Now focus.";
-      setTimeout(() => {
-        beginRound();
-      }, 650);
+      setTimeout(() => beginRound(), 650);
       return;
     }
 
-    // Round logic
-    if (b.spice.key === TARGET_KEY) {
+    // Round: target is SCENT cue, not color
+    const isCorrect = (b.spice.scent === TARGET_SCENT);
+
+    if (isCorrect) {
       b.pop();
       targetsLeft = Math.max(0, targetsLeft - 1);
       setHUDRound();
-
-      if (targetsLeft <= 0) {
-        // win after pop animation has time to feel satisfying
-        setTimeout(() => showEnd(true), 550);
-      }
+      if (targetsLeft <= 0) setTimeout(() => showEnd(true), 520);
     } else {
-      // wrong bubble: small penalty, subtle flash
       flashWrong();
-
-      // tiny time penalty (keeps pressure real)
+      // small time penalty so wrong clicks matter, but not brutal
       timeLeft = Math.max(0, timeLeft - 1);
       setHUDRound();
-
-      // optional: pop wrong too? (I recommend NO for fairness; keep it alive)
-      // b.pop();
+      // wrong bubbles stay (so you can't just clear the board)
     }
   }
 
   canvas.addEventListener("pointerdown", onPointerDown);
 
-  /***********************
-   *  Loop
-   ***********************/
   function loop(ts) {
     const rect = canvas.getBoundingClientRect();
     const w = rect.width, h = rect.height;
@@ -554,53 +515,25 @@
     const dt = Math.min(0.033, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    // Update
     if (mode === "round") {
-      // Countdown
-      // We tick timer smoothly so it feels “alive”, then display as whole seconds
       timeLeft -= dt;
       if (timeLeft < 0) timeLeft = 0;
-
-      // Update HUD as integer seconds
-      const sec = Math.ceil(timeLeft);
-      timeVal.textContent = `${sec}s`;
+      timeVal.textContent = `${Math.ceil(timeLeft)}s`;
       leftVal.textContent = String(targetsLeft);
 
-      // If time up and targets remain
-      if (timeLeft <= 0 && targetsLeft > 0) {
-        showEnd(false);
-      }
+      if (timeLeft <= 0 && targetsLeft > 0) showEnd(false);
     }
 
     const speedMul = (mode === "round") ? SPEED_MUL_ROUND1 : 0.55;
+    for (const b of bubbles) b.update(dt, w, h, speedMul);
 
-    for (const b of bubbles) {
-      b.update(dt, w, h, speedMul);
-    }
-
-    // Draw
     ctx.clearRect(0, 0, w, h);
+    for (const b of bubbles) b.draw(ctx);
 
-    // Background is white (body), but if you want a tiny warmth:
-    // ctx.fillStyle = "#ffffff";
-    // ctx.fillRect(0, 0, w, h);
-
-    // Draw bubbles
-    for (const b of bubbles) {
-      b.draw(ctx);
-    }
-
-    // If game running, keep animating
-    if (mode === "warmup" || mode === "round") {
-      requestAnimationFrame(loop);
-    }
+    if (mode === "warmup" || mode === "round") requestAnimationFrame(loop);
   }
 
-  /***********************
-   *  Boot
-   ***********************/
   resizeCanvas();
-  // startOverlay is shown by default
 })();
 </script>
 </body>
