@@ -22,3 +22,9 @@ Smell is the only sense that bypasses the thalamus and goes straight to memory a
 ## Play it
 
 Just open the HTML file in any browser. No installation needed.
+
+   <div class="footer">
+        <p>Maintained by <a href="https://www.theafricangourmet.com" style="color: #8B4513;">The African Gourmet</a> · Licensed under CC BY 4.0</p>
+        <p>Part of [SankofaKitchen](https://github.com/ChicAfricanCulture) — African foodways retrieved through play  
+[Visit my GitHub profile](https://github.com/ChicAfricanCulture) for more projects</p>
+    </div>
